@@ -41,15 +41,18 @@ using NLog.Config;
 
 using NLog.Internal;
 
-namespace NLog.Appenders
+namespace NLog.Targets
 {
-    [Appender("File")]
-    public class FileAppender: Appender
+    /// <summary>
+    /// Writes logging messages to one or more files.
+    /// </summary>
+    [Target("File")]
+    public class FileTarget: Target
     {
         private Random _random = new Random();
         private Layout _fileNameLayout;
         private bool _createDirs = false;
-        private bool _keepFileOpen = true;
+        private bool _keepFileOpen = false;
         private string _lastFileName = String.Empty;
         private StreamWriter _outputFile;
         private System.Text.Encoding _encoding = System.Text.Encoding.Default;
@@ -59,7 +62,22 @@ namespace NLog.Appenders
         private int _bufferSize = 32768;
         private int _concurrentWriteAttemptDelay = 1;
 
+        /// <summary>
+        /// The name of the file to write to.
+        /// </summary>
+        /// <remarks>
+        /// This FileName string is a layout which may include instances of layout renderers.
+        /// This lets you use a single target to write to multiple files.
+        /// </remarks>
+        /// <example>
+        /// The following value makes NLog write logging events to files based on the log level in the directory where
+        /// the application runs.
+        /// <code>${basedir}/${level}.log</code>
+        /// All <c>Debug</c> messages will go to <c>Debug.log</c>, all <c>Info</c> messages will go to <c>Info.log</c> and so on.
+        /// You can combine as many of the layout renderers as you want to produce an arbitrary log file name.
+        /// </example>
         [RequiredParameter]
+        [AcceptsLayout]
         public string FileName
         {
             get
@@ -72,6 +90,10 @@ namespace NLog.Appenders
             }
         }
 
+        /// <summary>
+        /// Create directories if they don't exist.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
         public bool CreateDirs
         {
             get
@@ -84,6 +106,15 @@ namespace NLog.Appenders
             }
         }
 
+        /// <summary>
+        /// Keep log file open instead of opening and closing it on each logging event.
+        /// </summary>
+        /// <remarks>
+        /// Setting this property to <c>True</c> helps improve performance but is not recommended in multithreaded or multiprocess
+        /// scenarios because the file is kept locked and other processes cannot write to it which
+        /// effectively prevents logging.
+        /// </remarks>
+        [System.ComponentModel.DefaultValue(false)]
         public bool KeepFileOpen
         {
             get
@@ -96,6 +127,10 @@ namespace NLog.Appenders
             }
         }
 
+        /// <summary>
+        /// Automatically flush the file buffers after each log message.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(true)]
         public bool AutoFlush
         {
             get
@@ -108,6 +143,10 @@ namespace NLog.Appenders
             }
         }
 
+        /// <summary>
+        /// Log file buffer size in bytes.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(32768)]
         public int BufferSize
         {
             get
@@ -120,6 +159,11 @@ namespace NLog.Appenders
             }
         }
 
+        /// <summary>
+        /// File encoding.</summary>
+        /// <remarks>
+        /// Can be any encoding name supported by System.Text.Encoding.GetEncoding() e.g. <c>windows-1252</c>, <c>iso-8859-2</c>.
+        /// </remarks>
         public string Encoding
         {
             get
@@ -132,6 +176,15 @@ namespace NLog.Appenders
             }
         }
 
+        /// <summary>
+        /// Enables concurrent writes to the log file by multiple processes.
+        /// </summary>
+        /// <remarks>
+        /// This prevents the log files from being kept open and makes NLog
+        /// retry file writes until a write succeeds. This allows for logging in
+        /// multiprocess environment.
+        /// </remarks>
+        [System.ComponentModel.DefaultValue(true)]
         public bool ConcurrentWrites
         {
             get
@@ -144,6 +197,11 @@ namespace NLog.Appenders
             }
         }
 
+        /// <summary>
+        /// The number of times the write is appended on the file before NLog
+        /// discards the log message.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(10)]
         public int ConcurrentWriteAttempts
         {
             get
@@ -156,6 +214,24 @@ namespace NLog.Appenders
             }
         }
 
+        /// <summary>
+        /// The delay in milliseconds to wait before attempting to write to the file again.
+        /// </summary>
+        /// <remarks>
+        /// The actual delay is a random value between 0 and the value specified
+        /// in this parameter. On each failed attempt the delay base is doubled
+        /// up to <see cref="ConcurrentWriteAttempts" /> times.
+        /// </remarks>
+        /// <example>
+        /// Assuming that ConcurrentWriteAttemptDelay is 10 the time to wait will be:<p/>
+        /// a random value between 0 and 10 milliseconds - 1st attempt<br/>
+        /// a random value between 0 and 20 milliseconds - 2nd attempt<br/>
+        /// a random value between 0 and 40 milliseconds - 3rd attempt<br/>
+        /// a random value between 0 and 80 milliseconds - 4th attempt<br/>
+        /// ...<p/>
+        /// and so on.
+        /// </example>
+        [System.ComponentModel.DefaultValue(1)]
         public int ConcurrentWriteAttemptDelay
         {
             get
@@ -199,7 +275,7 @@ namespace NLog.Appenders
                             retVal = new StreamWriter(fileName, true, _encoding, _bufferSize);
                             break;
                         }
-                        catch (IOException ex)
+                        catch (IOException)
                         {
                             // Console.WriteLine("ex: {0}", ex.Message);
                             int actualDelay = _random.Next(currentDelay);
@@ -219,11 +295,22 @@ namespace NLog.Appenders
             }
         }
 
+        /// <summary>
+        /// Determines whether stack trace information should be gathered
+        /// during log event processing. It calls <see cref="NLog.Layout.NeedsStackTrace" /> on
+        /// Layout and FileName parameters.
+        /// </summary>
+        /// <returns>0 - don't include stack trace<br/>1 - include stack trace without source file information<br/>2 - include full stack trace</returns>
         protected internal override int NeedsStackTrace()
         {
             return Math.Max(base.NeedsStackTrace(), _fileNameLayout.NeedsStackTrace());
         }
 
+        /// <summary>
+        /// Writes the specified logging event to a file specified in the FileName 
+        /// parameter.
+        /// </summary>
+        /// <param name="ev">The logging event.</param>
         protected internal override void Append(LogEventInfo ev)
         {
             lock (this)
