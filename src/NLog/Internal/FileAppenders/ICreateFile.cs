@@ -42,14 +42,21 @@ using NLog;
 using NLog.Config;
 
 using NLog.Internal;
+using NLog.Internal.Win32;
 
 namespace NLog.Internal.FileAppenders
 {
     /// <summary>
-    /// Abstract file-opening.
+    /// Interface that provides parameters for create file function.
     /// </summary>
-    internal interface IFileOpener
+    internal interface ICreateFileParameters
     {
-        FileStream Create(string fileName, bool enableConcurrentWrite);
+        int ConcurrentWriteAttemptDelay { get; }
+        int ConcurrentWriteAttempts { get; }
+        bool ConcurrentWrites { get; }
+        bool CreateDirs { get; }
+        bool EnableFileDelete { get; }
+        int BufferSize { get; }
+        Win32FileAttributes FileAttributes { get; }
     }
 }
