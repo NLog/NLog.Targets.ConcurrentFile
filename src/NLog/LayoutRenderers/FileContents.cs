@@ -88,7 +88,7 @@ namespace NLog.LayoutRenderers
         }
 
         /// <summary>
-        /// Renders the current log level and appends it to the specified <see cref="StringBuilder" />.
+        /// Renders the contents of the specified file and appends it to the specified <see cref="StringBuilder" />.
         /// </summary>
         /// <param name="builder">The <see cref="StringBuilder"/> to append the rendered data to.</param>
         /// <param name="logEvent">Logging event.</param>
