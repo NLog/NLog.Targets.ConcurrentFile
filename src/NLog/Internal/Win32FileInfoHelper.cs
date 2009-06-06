@@ -31,44 +31,21 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
+#if !NET_CF && !SILVERLIGHT
+
 using System;
 using System.IO;
 
 using NLog.Config;
-
-#if !NET_CF && !SILVERLIGHT
 using NLog.Internal.Win32;
-#endif
 
 namespace NLog.Internal
 {
     /// <summary>
-    /// Optimized routines to get the size and last write time of the specified file.
+    /// Win32-optimized implementation of <see cref="FileInfoHelper"/>.
     /// </summary>
-    internal abstract class FileInfoHelper
+    internal class Win32FileInfoHelper : FileInfoHelper
     {
-        /// <summary>
-        /// Initializes static members of the FileInfoHelper class.
-        /// </summary>
-        static FileInfoHelper()
-        {
-#if NET_CF || SILVERLIGHT
-            Helper = new PortableFileInfoHelper();
-#else
-            if (PlatformDetector.IsCurrentOSCompatibleWith(RuntimeOS.Windows) ||
-                PlatformDetector.IsCurrentOSCompatibleWith(RuntimeOS.WindowsNT))
-            {
-                Helper = new Win32FileInfoHelper();
-            }
-            else
-            {
-                Helper = new PortableFileInfoHelper();
-            }
-#endif
-        }
-
-        internal static FileInfoHelper Helper { get; private set; }
-
         /// <summary>
         /// Gets the information about a file.
         /// </summary>
@@ -76,7 +53,27 @@ namespace NLog.Internal
         /// <param name="fileHandle">The file handle.</param>
         /// <param name="lastWriteTime">The last write time of the file.</param>
         /// <param name="fileLength">Length of the file.</param>
-        /// <returns>A value of <c>true</c> if file information was retrieved successfully, <c>false</c> otherwise.</returns>
-        public abstract bool GetFileInfo(string fileName, IntPtr fileHandle, out DateTime lastWriteTime, out long fileLength);
+        /// <returns>
+        /// A value of <c>true</c> if file information was retrieved successfully, <c>false</c> otherwise.
+        /// </returns>
+        public override bool GetFileInfo(string fileName, IntPtr fileHandle, out DateTime lastWriteTime, out long fileLength)
+        {
+            Win32FileHelper.BY_HANDLE_FILE_INFORMATION fi;
+
+            if (Win32FileHelper.GetFileInformationByHandle(fileHandle, out fi))
+            {
+                lastWriteTime = DateTime.FromFileTime(fi.ftLastWriteTime);
+                fileLength = fi.nFileSizeLow + (((long)fi.nFileSizeHigh) << 32);
+                return true;
+            }
+            else
+            {
+                lastWriteTime = DateTime.MinValue;
+                fileLength = -1;
+                return false;
+            }
+        }
     }
 }
+
+#endif

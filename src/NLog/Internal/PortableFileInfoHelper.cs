@@ -43,32 +43,10 @@ using NLog.Internal.Win32;
 namespace NLog.Internal
 {
     /// <summary>
-    /// Optimized routines to get the size and last write time of the specified file.
+    /// Portable implementation of <see cref="FileInfoHelper"/>.
     /// </summary>
-    internal abstract class FileInfoHelper
+    internal class PortableFileInfoHelper : FileInfoHelper
     {
-        /// <summary>
-        /// Initializes static members of the FileInfoHelper class.
-        /// </summary>
-        static FileInfoHelper()
-        {
-#if NET_CF || SILVERLIGHT
-            Helper = new PortableFileInfoHelper();
-#else
-            if (PlatformDetector.IsCurrentOSCompatibleWith(RuntimeOS.Windows) ||
-                PlatformDetector.IsCurrentOSCompatibleWith(RuntimeOS.WindowsNT))
-            {
-                Helper = new Win32FileInfoHelper();
-            }
-            else
-            {
-                Helper = new PortableFileInfoHelper();
-            }
-#endif
-        }
-
-        internal static FileInfoHelper Helper { get; private set; }
-
         /// <summary>
         /// Gets the information about a file.
         /// </summary>
@@ -76,7 +54,24 @@ namespace NLog.Internal
         /// <param name="fileHandle">The file handle.</param>
         /// <param name="lastWriteTime">The last write time of the file.</param>
         /// <param name="fileLength">Length of the file.</param>
-        /// <returns>A value of <c>true</c> if file information was retrieved successfully, <c>false</c> otherwise.</returns>
-        public abstract bool GetFileInfo(string fileName, IntPtr fileHandle, out DateTime lastWriteTime, out long fileLength);
+        /// <returns>
+        /// A value of <c>true</c> if file information was retrieved successfully, <c>false</c> otherwise.
+        /// </returns>
+        public override bool GetFileInfo(string fileName, IntPtr fileHandle, out DateTime lastWriteTime, out long fileLength)
+        {
+            FileInfo fi = new FileInfo(fileName);
+            if (fi.Exists)
+            {
+                fileLength = fi.Length;
+                lastWriteTime = fi.LastWriteTime;
+                return true;
+            }
+            else
+            {
+                fileLength = -1;
+                lastWriteTime = DateTime.MinValue;
+                return false;
+            }
+        }
     }
 }
