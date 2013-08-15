@@ -195,7 +195,7 @@ namespace NLog.Targets
 #endif
             this.BufferSize = 32768;
             this.AutoFlush = true;
-#if !SILVERLIGHT && !NET_CF
+#if !SILVERLIGHT
             this.FileAttributes = Win32FileAttributes.Normal;
 #endif
             this.NewLineChars = EnvironmentHelper.NewLine;
@@ -283,7 +283,7 @@ namespace NLog.Targets
         [DefaultValue("")]
         public string ArchiveDateFormat { get; set; }
 
-#if !NET_CF && !SILVERLIGHT
+#if !SILVERLIGHT
         /// <summary>
         /// Gets or sets the file attributes (Windows only).
         /// </summary>
@@ -605,7 +605,7 @@ namespace NLog.Targets
                     }
                     else if (this.ConcurrentWrites)
                     {
-#if NET_CF || SILVERLIGHT
+#if SILVERLIGHT
                         this.appenderFactory = RetryingMultiProcessFileAppender.TheFactory;
 #elif MONO
                         //
@@ -636,7 +636,7 @@ namespace NLog.Targets
                     }
                     else if (this.ConcurrentWrites)
                     {
-#if NET_CF || SILVERLIGHT
+#if SILVERLIGHT
                         this.appenderFactory = RetryingMultiProcessFileAppender.TheFactory;
 #elif MONO
                         //
