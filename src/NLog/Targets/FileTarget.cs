@@ -1406,6 +1406,11 @@ namespace NLog.Targets
             }
 
             appenderToWrite.Write(bytes);
+
+            if (this.AutoFlush)
+            {
+                appenderToWrite.Flush();
+            }
         }
 
         private byte[] GetHeaderBytes()
