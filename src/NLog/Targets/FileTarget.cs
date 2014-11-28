@@ -1160,7 +1160,7 @@ namespace NLog.Targets
                 Directory.CreateDirectory(dirName);
             }
 
-            DateTime newFileDate = GetArchiveDate();
+            DateTime newFileDate = GetArchiveDate(true);
             string newFileName = Path.Combine(dirName, fileNameMask.Replace("*", newFileDate.ToString(dateFormat)));
             MoveFileToArchive(fileName, newFileName);
         }
@@ -1198,7 +1198,7 @@ namespace NLog.Targets
             return formatString;
         }
 
-        private DateTime GetArchiveDate(bool isNextCycle = true)
+        private DateTime GetArchiveDate(bool isNextCycle)
         {
             DateTime archiveDate = DateTime.Now;
 
