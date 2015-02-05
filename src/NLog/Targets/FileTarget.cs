@@ -216,8 +216,8 @@ namespace NLog.Targets
             set
             {
                 this.lineEndingMode = value;
-                }
             }
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether to automatically flush the file buffers after each log message.
@@ -388,14 +388,26 @@ namespace NLog.Targets
         /// <docgen category='Archival Options' order='10' />
         public ArchiveNumberingMode ArchiveNumbering { get; set; }
 
+#if NET4_5
+        /// <summary>
+        /// Gets or sets a value indicating whether to compress archive files into the zip archive format.
+        /// </summary>
+        /// <docgen category='Archival Options' order='10' />
+        [DefaultValue(false)]
+        public bool EnableArchiveFileCompression { get; set; }
+#else
+        private const bool EnableArchiveFileCompression = false;
+#endif
+
         /// <summary>
         /// Gets the characters that are appended after each line.
         /// </summary>
-        protected internal string NewLineChars { 
-            get 
-            { 
-                return lineEndingMode.NewLineCharacters; 
-            } 
+        protected internal string NewLineChars
+        {
+            get
+            {
+                return lineEndingMode.NewLineCharacters;
+            }
         }
 
         /// <summary>
@@ -778,9 +790,10 @@ namespace NLog.Targets
 
             InternalLogger.Trace("Renaming {0} to {1}", fileName, newFileName);
 
+            var shouldCompress = archiveNumber == 0;
             try
             {
-                RollArchiveForward(fileName, newFileName);
+                RollArchiveForward(fileName, newFileName, shouldCompress);
             }
             catch (IOException)
             {
@@ -791,16 +804,16 @@ namespace NLog.Targets
                     Directory.CreateDirectory(dir);
                 }
 
-                RollArchiveForward(fileName, newFileName);
+                RollArchiveForward(fileName, newFileName, shouldCompress);
             }
         }
 
         private void SequentialArchive(string fileName, string pattern)
         {
             FileNameTemplate fileTemplate = new FileNameTemplate(Path.GetFileName(pattern));
-            int trailerLength = fileTemplate.Template.Length - fileTemplate.EndAt; 
+            int trailerLength = fileTemplate.Template.Length - fileTemplate.EndAt;
             string fileNameMask = fileTemplate.ReplacePattern("*");
-            
+
             string dirName = Path.GetDirectoryName(Path.GetFullPath(pattern));
             int nextNumber = -1;
             int minNumber = -1;
@@ -857,12 +870,32 @@ namespace NLog.Targets
             }
 
             string newFileName = ReplaceNumberPattern(pattern, nextNumber);
-            RollArchiveForward(fileName, newFileName);
+            RollArchiveForward(fileName, newFileName, shouldCompress: true);
         }
 
-        private void RollArchiveForward(string existingFileName, string archiveFileName)
+        private static void ArchiveFile(string fileName, string archiveFileName, bool enableCompression)
         {
-            File.Move(existingFileName, archiveFileName);
+#if NET4_5
+            if (enableCompression)
+            {
+                using (var stream = new FileStream(archiveFileName, FileMode.Create))
+                using (var archive = new ZipArchive(stream, ZipArchiveMode.Create))
+                {
+                    archive.CreateEntryFromFile(fileName, Path.GetFileName(fileName));
+                }
+
+                File.Delete(fileName);
+            }
+            else
+#endif
+            {
+                File.Move(fileName, archiveFileName);
+            }
+        }
+
+        private void RollArchiveForward(string existingFileName, string archiveFileName, bool shouldCompress)
+        {
+            ArchiveFile(existingFileName, archiveFileName, shouldCompress && EnableArchiveFileCompression);
 
             string fileName = Path.GetFileName(existingFileName);
             if (fileName == null) { return; }
@@ -1035,7 +1068,7 @@ namespace NLog.Targets
 
             DateTime newFileDate = GetArchiveDate(true);
             string newFileName = Path.Combine(dirName, fileNameMask.Replace("*", newFileDate.ToString(dateFormat)));
-            RollArchiveForward(fileName, newFileName);
+            RollArchiveForward(fileName, newFileName, shouldCompress: true);
         }
 #endif
 
@@ -1137,7 +1170,7 @@ namespace NLog.Targets
 
             if (!ContainFileNamePattern(fileNamePattern))
             {
-                if (fileArchive.Archive(fileNamePattern, fi.FullName, CreateDirs))
+                if (fileArchive.Archive(fileNamePattern, fi.FullName, CreateDirs, EnableArchiveFileCompression))
                 {
                     if (this.initializedFiles.ContainsKey(fi.FullName))
                     {
@@ -1618,13 +1651,14 @@ namespace NLog.Targets
         }
         #endif
 
-                private class DynamicFileArchive
-                {
+        private class DynamicFileArchive
+        {
             public bool CreateDirectory { get; set; }
 
             public int MaxArchiveFileToKeep { get; set; }
 
-            public DynamicFileArchive(int maxArchivedFiles) : this()
+            public DynamicFileArchive(int maxArchivedFiles)
+                : this()
             {
                 this.MaxArchiveFileToKeep = maxArchivedFiles;
             }
@@ -1638,7 +1672,7 @@ namespace NLog.Targets
             /// <param name="createDirectory">Create a directory, if it does not exist</param>
             /// <returns><c>true</c> if the file has been moved successfully; <c>false</c> otherwise</returns>
             [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-            public bool Archive(string archiveFileName, string fileName, bool createDirectory)
+            public bool Archive(string archiveFileName, string fileName, bool createDirectory, bool enableCompression)
             {
                 if (MaxArchiveFileToKeep < 1)
                 {
@@ -1653,11 +1687,11 @@ namespace NLog.Targets
                 }
 
                 DeleteOldArchiveFiles();
-                AddToArchive(archiveFileName, fileName, createDirectory);
+                AddToArchive(archiveFileName, fileName, createDirectory, enableCompression);
                 archiveFileQueue.Enqueue(archiveFileName);
                 return true;
             }
-            
+
             public DynamicFileArchive()
             {
                 this.MaxArchiveFileToKeep = -1;
@@ -1671,7 +1705,8 @@ namespace NLog.Targets
             /// <param name="archiveFileName"></param>
             /// <param name="fileName"></param>
             /// <param name="createDirectory"></param>
-            private void AddToArchive(string archiveFileName, string fileName, bool createDirectory)
+            /// <param name="enableCompression"></param>
+            private void AddToArchive(string archiveFileName, string fileName, bool createDirectory, bool enableCompression)
             {
                 String alternativeFileName = archiveFileName;
 
@@ -1683,7 +1718,7 @@ namespace NLog.Targets
 
                 try
                 {
-                    File.Move(fileName, alternativeFileName);
+                    ArchiveFile(fileName, alternativeFileName, enableCompression);
                 }
                 catch (DirectoryNotFoundException)
                 {
@@ -1694,7 +1729,7 @@ namespace NLog.Targets
                         try
                         {
                             Directory.CreateDirectory(Path.GetDirectoryName(archiveFileName));
-                            File.Move(fileName, alternativeFileName);
+                            ArchiveFile(fileName, alternativeFileName, enableCompression);
                         }
                         catch (Exception ex)
                         {
@@ -1774,8 +1809,8 @@ namespace NLog.Targets
                     numberToStartWith++;
                 }
                 return targetFileName;
-            }            
-                }
+            }
+        }
 
 
         private sealed class FileNameTemplate
@@ -1784,7 +1819,7 @@ namespace NLog.Targets
             /// Characters determining the start of the <see cref="P:FileNameTemplate.Pattern"/>.
             /// </summary>
             public const string PatternStartCharacters = "{#";
-            
+
             /// <summary>
             /// Characters determining the end of the <see cref="P:FileNameTemplate.Pattern"/>.
             /// </summary>
@@ -1846,13 +1881,13 @@ namespace NLog.Targets
 
             public FileNameTemplate(string template)
             {
-                this.template = template;                
+                this.template = template;
                 this.startIndex = template.IndexOf(PatternStartCharacters, StringComparison.Ordinal);
                 this.endIndex = template.IndexOf(PatternEndCharacters, StringComparison.Ordinal) + PatternEndCharacters.Length;
 
                 this.pattern = this.HasPattern() ? template.Substring(this.startIndex, this.endIndex - this.startIndex) : String.Empty;
 
-            }            
+            }
 
             /// <summary>
             /// Checks if there the <see cref="P:FileNameTemplate.Template"/> 
