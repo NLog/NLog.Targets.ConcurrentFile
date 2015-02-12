@@ -1313,7 +1313,7 @@ namespace NLog.Targets
 
                 try
                 {
-                    DateTime timeToKill = DateTime.Now.AddSeconds(-this.OpenFileCacheTimeout);
+                    DateTime timeToKill = DateTime.UtcNow.AddSeconds(-this.OpenFileCacheTimeout);
                     for (int i = 0; i < this.recentAppenders.Length; ++i)
                     {
                         if (this.recentAppenders[i] == null)
@@ -1606,7 +1606,7 @@ namespace NLog.Targets
             if (fileInfo.Exists)
             {
                 fileLength = fileInfo.Length;
-                lastWriteTime = fileInfo.LastWriteTime;
+                lastWriteTime = fileInfo.LastWriteTimeUtc;
                 return true;
             }
 
