@@ -1289,9 +1289,12 @@ namespace NLog.Targets
 
             if (this.ArchiveEvery != FileArchivePeriod.None)
             {
+                // file write time is in Utc and logEvent's timestamp is originated from TimeSource.Current,
+                // so we should ask the TimeSource to convert file time to TimeSource time:
+                lastWriteTime = TimeSource.Current.FromSystemTime(lastWriteTime);
                 string formatString = GetDateFormatString(string.Empty);
                 string fileLastChanged = lastWriteTime.ToString(formatString, CultureInfo.InvariantCulture);
-                string logEventRecorded = logEvent.TimeStamp.ToLocalTime().ToString(formatString, CultureInfo.InvariantCulture);
+                string logEventRecorded = logEvent.TimeStamp.ToString(formatString, CultureInfo.InvariantCulture);
 
                 if (fileLastChanged != logEventRecorded)
                 {
