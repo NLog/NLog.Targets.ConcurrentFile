@@ -1006,12 +1006,9 @@ namespace NLog.Targets
                 var filesByDate = new List<string>();
                 for (int index = 0; index < files.Count; index++)
                 {
-                    //Get the archive file name or empty string if it's null
-                    string archiveFileName = Path.GetFileName(files[index]) ?? "";
+                    string archiveFileName = Path.GetFileName(files[index]);
 
-                    //If our archive name is empty or it's the same as our intended log file, just continue checking.
-                    if (string.IsNullOrEmpty(archiveFileName) || 
-                        archiveFileName.Equals(Path.GetFileName(fileName)))
+                    if (string.IsNullOrEmpty(archiveFileName))
                     {
                         continue;
                     }
