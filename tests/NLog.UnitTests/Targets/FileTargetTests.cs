@@ -31,6 +31,7 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
+using System.Runtime.InteropServices;
 using NLog.Internal;
 using NLog.LayoutRenderers;
 using Xunit.Extensions;
@@ -1393,7 +1394,7 @@ namespace NLog.UnitTests.Targets
 #if NET4_5
                     enableCompression ? new Action<string, string, Encoding>(AssertZipFileContents) : AssertFileContents;
 #else
- new Action<string, string, Encoding>(AssertFileContents);
+                new Action<string, string, Encoding>(AssertFileContents);
 #endif
                 AssertFileContents(tempFile,
                     StringRepeat(250, "eee\n"),
@@ -1501,55 +1502,52 @@ namespace NLog.UnitTests.Targets
         }
 
         [Fact]
-        public void Single_Archive_File_Rolls_Correctly()
+        public void FileTarget_LogAndArchiveFilesWithSameName_ShouldArchive()
         {
             var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            var tempFile = Path.Combine(tempPath, "file.txt");
+            var logFile = Path.Combine(tempPath, "Application.log");
+            var tempDirectory = new DirectoryInfo(tempPath);
             try
             {
+
+                var archiveFile = Path.Combine(tempPath, "Application{#}.log");
+                var archiveFileMask = "Application*.log";
+
                 var ft = new FileTarget
                 {
-                    FileName = tempFile,
-                    ArchiveFileName = Path.Combine(tempPath, "archive/file.txt2"),
-                    ArchiveAboveSize = 1000,
-                    LineEnding = LineEndingMode.LF,
-                    Layout = "${message}",
-                    MaxArchiveFiles = 1,
+                    FileName = logFile,
+                    ArchiveFileName = archiveFile,
+                    ArchiveAboveSize = 1, //Force immediate archival
+                    ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
+                    MaxArchiveFiles = 5
                 };
 
                 SimpleConfigurator.ConfigureForTargetLogging(ft, LogLevel.Debug);
 
-                // we emit 5 * 250 *(3 x aaa + \n) bytes
-                // so that we should get a full file + 3 archives
-                for (var i = 0; i < 250; ++i)
+                //Creates 5 archive files.
+                for (int i = 0; i <= 5; i++)
                 {
-                    logger.Debug("aaa");
-                }
-                for (var i = 0; i < 250; ++i)
-                {
-                    logger.Debug("bbb");
+                    logger.Debug("a");
                 }
 
-                LogManager.Configuration = null;
+                Assert.True(File.Exists(logFile));
 
-                AssertFileContents(tempFile,
-                    StringRepeat(250, "bbb\n"),
-                    Encoding.UTF8);
-
-                AssertFileContents(
-                    Path.Combine(tempPath, "archive/file.txt2"),
-                    StringRepeat(250, "aaa\n"),
-                    Encoding.UTF8);
+                //Five archive files, plus the log file itself.
+                Assert.True(tempDirectory.GetFiles(archiveFileMask).Count() == 5 + 1);
             }
             finally
             {
                 LogManager.Configuration = null;
-                if (File.Exists(tempFile))
-                    File.Delete(tempFile);
-                if (Directory.Exists(tempPath))
-                    Directory.Delete(tempPath, true);
+
+                if (tempDirectory.Exists)
+                {
+                    tempDirectory.Delete(true);
+                }
             }
+            
         }
+
+    
     }
 }
 

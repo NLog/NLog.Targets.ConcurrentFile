@@ -1004,12 +1004,20 @@ namespace NLog.Targets
 #endif
 
                 var filesByDate = new List<string>();
+
+                //It's possible that the log file itself has a name that will match the archive file mask.
+                var archiveFileCount = files.Count; 
+
                 for (int index = 0; index < files.Count; index++)
                 {
-                    string archiveFileName = Path.GetFileName(files[index]);
+                    //Get the archive file name or empty string if it's null
+                    string archiveFileName = Path.GetFileName(files[index]) ?? "";
 
-                    if (string.IsNullOrEmpty(archiveFileName))
+
+                    if (string.IsNullOrEmpty(archiveFileName) || 
+                        archiveFileName.Equals(Path.GetFileName(fileName)))
                     {
+                        archiveFileCount--;
                         continue;
                     }
 
@@ -1047,7 +1055,7 @@ namespace NLog.Targets
                 // Cleanup archive files
                 for (int fileIndex = 0; fileIndex < filesByDate.Count; fileIndex++)
                 {
-                    if (fileIndex > files.Count - this.MaxArchiveFiles)
+                    if (fileIndex > archiveFileCount - this.MaxArchiveFiles)
                         break;
 
                     File.Delete(filesByDate[fileIndex]);
@@ -1832,20 +1840,6 @@ namespace NLog.Targets
             /// </summary>
             private void DeleteOldArchiveFiles()
             {
-                if (MaxArchiveFileToKeep == 1 && archiveFileQueue.Any())
-                {
-                    var archiveFileName = archiveFileQueue.Dequeue();
-                    
-                    try
-                    {
-                        File.Delete(archiveFileName);
-                    }
-                    catch (Exception ex)
-                    {
-                        InternalLogger.Warn("Cannot delete old archive file : {0} , Exception : {1}", archiveFileName, ex);
-                    }
-                }
-
                 while (archiveFileQueue.Count >= MaxArchiveFileToKeep)
                 {
                     string oldestArchivedFileName = archiveFileQueue.Dequeue();
