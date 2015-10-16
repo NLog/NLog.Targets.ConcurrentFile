@@ -668,7 +668,7 @@ namespace NLog.Targets
                         this.previousFileNames.Dequeue();
                     }
 
-                    string fileNamePattern = this.GetFileNamePattern(fileName, logEvent);
+                    string fileNamePattern = CleanupInvalidFileNameChars(this.GetFileNamePattern(fileName, logEvent));
                     this.DeleteOldDateArchive(fileNamePattern);
                     this.previousFileNames.Enqueue(fileName);
                 }
@@ -1166,6 +1166,7 @@ namespace NLog.Targets
             try
             {
                 DirectoryInfo directoryInfo = new DirectoryInfo(dirName);
+
 #if SILVERLIGHT
                 List<string> files = directoryInfo.EnumerateFiles(fileNameMask).OrderBy(n => n.CreationTime).Select(n => n.FullName).ToList();
 #else
@@ -1987,6 +1988,11 @@ namespace NLog.Targets
                 }
             }
 
+            private bool FoundPattern
+            {
+                get { return startIndex != -1 && endIndex != -1; }
+            }
+
             private readonly string template;
 
             private readonly int startIndex;
@@ -1996,7 +2002,8 @@ namespace NLog.Targets
             {
                 this.template = template;
                 this.startIndex = template.IndexOf(PatternStartCharacters, StringComparison.Ordinal);
-                this.endIndex = template.IndexOf(PatternEndCharacters, StringComparison.Ordinal) + PatternEndCharacters.Length;
+                if (this.startIndex !=-1)
+                    this.endIndex = template.IndexOf(PatternEndCharacters, StringComparison.Ordinal) + PatternEndCharacters.Length;
             }
 
             /// <summary>
@@ -2006,7 +2013,7 @@ namespace NLog.Targets
             /// <returns></returns>
             public string ReplacePattern(string replacementValue)
             {
-                return String.IsNullOrEmpty(replacementValue) ? this.Template : template.Substring(0, this.BeginAt) + replacementValue + template.Substring(this.EndAt);
+                return !FoundPattern || String.IsNullOrEmpty(replacementValue) ? this.Template : template.Substring(0, this.BeginAt) + replacementValue + template.Substring(this.EndAt);
             }
         }
     }
