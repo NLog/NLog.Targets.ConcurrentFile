@@ -1831,9 +1831,9 @@ namespace NLog.Targets
             if (fi.Exists)
             {
 #if !SILVERLIGHT
-                fileInfo = new Internal.FileInfo(fi.CreationTimeUtc, fi.LastWriteTimeUtc, fi.Length);
+                fileInfo = new Internal.FileInfo(fi.CreationTimeUtc, fi.Length);
 #else
-                fileInfo = new Internal.FileInfo(fi.CreationTime, fi.LastWriteTime, fi.Length);
+                fileInfo = new Internal.FileInfo(fi.CreationTime, fi.Length);
 #endif
                 return true;
             }
