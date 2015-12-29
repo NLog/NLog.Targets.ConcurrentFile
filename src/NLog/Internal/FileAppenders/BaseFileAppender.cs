@@ -83,6 +83,12 @@ namespace NLog.Internal.FileAppenders
         public DateTime OpenTime { get; private set; }
 
         /// <summary>
+        /// Gets the last write time.
+        /// </summary>
+        /// <value>The time the file was last written to. DateTime value must be of UTC kind.</value>
+        public DateTime LastWriteTime { get; private set; }
+
+        /// <summary>
         /// Gets the file creation parameters.
         /// </summary>
         /// <value>The file creation parameters.</value>

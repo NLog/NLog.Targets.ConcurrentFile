@@ -35,7 +35,6 @@ using System.Security;
 
 namespace NLog.Internal.FileAppenders
 {
-    using System;
     using System.IO;
     using NLog.Common;
 
@@ -122,7 +121,7 @@ namespace NLog.Internal.FileAppenders
         /// <returns>The file characteristics, if the file information was retrieved successfully, otherwise null.</returns>
         public override FileCharacteristics GetFileCharacteristics()
         {
-            return file == null ? null : new FileCharacteristics(OpenTime, file.Length);
+            return file == null ? null : new FileCharacteristics(CreationTime, LastWriteTime, file.Length);
         }
 
         /// <summary>
