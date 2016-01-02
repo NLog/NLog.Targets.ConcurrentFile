@@ -35,6 +35,7 @@ using System.Security;
 
 namespace NLog.Internal.FileAppenders
 {
+    using System;
     using System.IO;
 
     /// <summary>
@@ -61,16 +62,10 @@ namespace NLog.Internal.FileAppenders
             var fi = new FileInfo(fileName);
             if (fi.Exists)
             {
-#if !SILVERLIGHT
-                this.FileTouched(fi.LastWriteTimeUtc);
-#else
-                this.FileTouched(fi.LastWriteTime);
-#endif
                 this.currentFileLength = fi.Length;
             }
             else
             {
-                this.FileTouched();
                 this.currentFileLength = 0;
             }
 
@@ -100,7 +95,6 @@ namespace NLog.Internal.FileAppenders
             }
 
             this.file.Flush();
-            this.FileTouched();
         }
 
         /// <summary>
@@ -109,7 +103,7 @@ namespace NLog.Internal.FileAppenders
         /// <returns>The file characteristics, if the file information was retrieved successfully, otherwise null.</returns>
         public override FileCharacteristics GetFileCharacteristics()
         {
-            return new FileCharacteristics(this.CreationTime, this.LastWriteTime, this.currentFileLength);
+            return new FileCharacteristics(this.OpenTime, this.currentFileLength);
         }
 
         /// <summary>
@@ -125,7 +119,6 @@ namespace NLog.Internal.FileAppenders
 
             this.currentFileLength += bytes.Length;
             this.file.Write(bytes, 0, bytes.Length);
-            this.FileTouched();
         }
 
         /// <summary>

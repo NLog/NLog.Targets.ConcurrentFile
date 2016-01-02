@@ -61,7 +61,6 @@ namespace NLog.Internal.FileAppenders
             this.CreateFileParameters = createParameters;
             this.FileName = fileName;
             this.OpenTime = DateTime.UtcNow; // to be consistent with timeToKill in FileTarget.AutoClosingTimerCallback
-            this.LastWriteTime = DateTime.MinValue;
         }
 
         /// <summary>
@@ -71,22 +70,16 @@ namespace NLog.Internal.FileAppenders
         public string FileName { get; private set; }
 
         /// <summary>
-        /// Gets the last write time.
+        /// Gets the file creation time.
         /// </summary>
-        /// <value>The last write time. DateTime value must be of UTC kind.</value>
-        public DateTime LastWriteTime { get; private set; }
+        /// <value>The file creation time. DateTime value must be of UTC kind.</value>
+        public DateTime CreationTime { get; private set; }
 
         /// <summary>
         /// Gets the open time of the file.
         /// </summary>
         /// <value>The open time. DateTime value must be of UTC kind.</value>
         public DateTime OpenTime { get; private set; }
-
-        /// <summary>
-        /// Gets the last write time.
-        /// </summary>
-        /// <value>The time the file was last written to. DateTime value must be of UTC kind.</value>
-        public DateTime LastWriteTime { get; private set; }
 
         /// <summary>
         /// Gets the file creation parameters.
@@ -135,24 +128,6 @@ namespace NLog.Internal.FileAppenders
             {
                 this.Close();
             }
-        }
-
-        /// <summary>
-        /// Records the last write time for a file.
-        /// </summary>
-        protected void FileTouched()
-        {
-            // always use system time in UTC to be consistent with FileInfo.LastWriteTimeUtc
-            this.LastWriteTime = DateTime.UtcNow;
-        }
-
-        /// <summary>
-        /// Records the last write time for a file to be specific date.
-        /// </summary>
-        /// <param name="dateTime">Date and time when the last write occurred. The value must be of UTC kind.</param>
-        protected void FileTouched(DateTime dateTime)
-        {
-            this.LastWriteTime = dateTime;
         }
 
         /// <summary>
@@ -267,6 +242,8 @@ namespace NLog.Internal.FileAppenders
                 fileShare |= FileShare.Delete;
             }
 
+            UpdateCreationTime();
+
 #if !SILVERLIGHT && !MONO && !__IOS__ && !__ANDROID__
             try
             {
@@ -287,6 +264,30 @@ namespace NLog.Internal.FileAppenders
                 FileAccess.Write,
                 fileShare,
                 this.CreateFileParameters.BufferSize);
+        }
+
+        private void UpdateCreationTime()
+        {
+            if (File.Exists(this.FileName))
+            {
+#if !SILVERLIGHT
+                this.CreationTime = File.GetCreationTimeUtc(this.FileName);
+#else
+                this.CreationTime = File.GetCreationTime(this.FileName);
+#endif
+            }
+            else
+            {
+                File.Create(this.FileName).Dispose();
+
+#if !SILVERLIGHT
+                this.CreationTime = DateTime.UtcNow;
+                // Set the file's creation time to avoid being thwarted by Windows' Tunneling capabilities (https://support.microsoft.com/en-us/kb/172190).
+                File.SetCreationTimeUtc(this.FileName, this.CreationTime);
+#else
+                this.CreationTime = File.GetCreationTime(this.FileName);
+#endif
+            }
         }
     }
 }
