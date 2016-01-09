@@ -94,6 +94,21 @@ namespace NLog.Targets
         /// <remarks>Last write time is store in local time (no UTC).</remarks>
         private readonly Dictionary<string, DateTime> initializedFiles = new Dictionary<string, DateTime>();
 
+#if !SILVERLIGHT && !__IOS__ && !__ANDROID__
+        /// <summary>
+        /// Watches for external file archiving operations.
+        /// </summary>
+        private readonly MultiFileWatcher externalFileArchivingWatcher = new MultiFileWatcher(NotifyFilters.FileName);
+
+        /// <summary>
+        /// Tells if the <see cref="externalFileArchivingWatcher"/> must be used for watching for external file archiving operations.
+        /// </summary>
+        private bool MustWatchExternalFileArchiving
+        {
+            get { return (ConcurrentWrites) && (KeepFileOpen); }
+        }
+#endif
+
         private LineEndingMode lineEndingMode = LineEndingMode.Default;
 
         /// <summary>
@@ -185,7 +200,27 @@ namespace NLog.Targets
             this.previousFileNames = new Queue<string>(this.maxLogFilenames);
             this.recentAppenders = FileAppenderCache.Empty;
             this.CleanupFileName = true;
+
+#if !SILVERLIGHT && !__IOS__ && !__ANDROID__
+            this.externalFileArchivingWatcher.OnChange += ExternalFileArchivingWatcher_OnChange;
+#endif
         }
+
+#if !SILVERLIGHT && !__IOS__ && !__ANDROID__
+        private void ExternalFileArchivingWatcher_OnChange(object sender, FileSystemEventArgs e)
+        {
+            if ((e.ChangeType & WatcherChangeTypes.Created) == WatcherChangeTypes.Created)
+            {
+                (new Thread(() =>
+                {
+                    lock (SyncRoot)
+                    {
+                        this.recentAppenders.InvalidateAppender(e.FullPath);
+                    }
+                })).Start();
+            }
+        }
+#endif
 
         /// <summary>
         /// Gets or sets the name of the file to write to.
@@ -1656,6 +1691,11 @@ namespace NLog.Targets
                 {
                     ProcessOnStartup(fileName, logEvent);
 
+#if !SILVERLIGHT && !__IOS__ && !__ANDROID__
+                    if (MustWatchExternalFileArchiving)
+                        externalFileArchivingWatcher.Watch(fileName);
+#endif
+
                     this.initializedFiles[fileName] = now;
                     this.initializedFilesCounter++;
                     writeHeader = true;
@@ -1687,6 +1727,10 @@ namespace NLog.Targets
                     this.WriteToFile(fileName, null, footerBytes, true);
                 }
             }
+
+#if !SILVERLIGHT && !__IOS__ && !__ANDROID__
+            externalFileArchivingWatcher.StopWatching(fileName);
+#endif
 
             this.initializedFiles.Remove(fileName);
         }
