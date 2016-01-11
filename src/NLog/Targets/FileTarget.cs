@@ -765,7 +765,7 @@ namespace NLog.Targets
 
             // Clean up old archives if this is the first time a log record is being written to
             // this log file and the archiving system is date/time based.
-            if (this.ArchiveNumbering == ArchiveNumberingMode.Date && this.ArchiveEvery != FileArchivePeriod.None && this.MaxArchiveFiles > 0)
+            if (this.ArchiveNumbering == ArchiveNumberingMode.Date && this.ArchiveEvery != FileArchivePeriod.None && ShouldDeleteOldArchives())
             {
                 if (!previousFileNames.Contains(fileName))
                 {
@@ -1192,7 +1192,10 @@ namespace NLog.Targets
         /// </remarks>
         private void EnsureArchiveCount(List<string> oldArchiveFileNames)
         {
-            if (this.MaxArchiveFiles <= 0) return;
+            if (this.MaxArchiveFiles <= 0)
+            {
+                return;
+            }
 
             int numberToDelete = oldArchiveFileNames.Count - this.MaxArchiveFiles;
             for (int fileIndex = 0; fileIndex < numberToDelete; fileIndex++)
@@ -1333,6 +1336,10 @@ namespace NLog.Targets
         /// <param name="pattern">The pattern that archive filenames will match</param>
         private void DeleteOldDateArchives(string pattern)
         {
+            if (!ShouldDeleteOldArchives())
+            {
+                return;
+            }
 
             string fileNameMask = ReplaceFileNamePattern(pattern, "*");
             string dirName = Path.GetDirectoryName(Path.GetFullPath(pattern));
@@ -1512,6 +1519,15 @@ namespace NLog.Targets
                 string archiveFileName = this.ArchiveFileName.Render(eventInfo);
                 return CleanupInvalidFileNameChars(archiveFileName);
             }
+        }
+
+        /// <summary>
+        /// Determine if old archive files should be deleted.
+        /// </summary>
+        /// <returns><see langword="true"/> when old archives should be deleted; <see langword="false"/> otherwise.</returns>
+        private bool ShouldDeleteOldArchives()
+        {
+            return MaxArchiveFiles > 0;
         }
 
         /// <summary>
