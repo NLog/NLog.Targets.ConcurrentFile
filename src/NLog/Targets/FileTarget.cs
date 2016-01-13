@@ -579,6 +579,11 @@ namespace NLog.Targets
             }
         }
 
+        /// <summary>
+        /// Refresh the `WatchExternalFileArchiving` option of the <see cref="FileAppenderCache" />. 
+        /// The log file must be watched for archiving when multiple processes are writing to the same 
+        /// open file.
+        /// </summary>
         private void RefreshWatchExternalFileArchiving()
         {
 #if !SILVERLIGHT && !__IOS__ && !__ANDROID__
