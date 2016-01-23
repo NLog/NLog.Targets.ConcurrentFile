@@ -962,6 +962,7 @@ namespace NLog.UnitTests.Targets
                     Directory.Delete(tempPath, true);
             }
         }
+
         public static IEnumerable<object[]> DateArchive_AllLoggersTransferToCurrentLogFile_TestParameters
         {
             get
@@ -973,16 +974,17 @@ namespace NLog.UnitTests.Targets
                     from networkWrites in booleanValues
                     where AllowsExternalFileModification(concurrentWrites, keepFileOpen, networkWrites)
                     from includeSequenceInArchive in booleanValues
-                    select new object[] { concurrentWrites, keepFileOpen, networkWrites, includeSequenceInArchive };
+                    from enableArchiveCompression in booleanValues
+                    select new object[] { concurrentWrites, keepFileOpen, networkWrites, includeSequenceInArchive, enableArchiveCompression };
             }
         }
 
         [Theory]
         [PropertyData("DateArchive_AllLoggersTransferToCurrentLogFile_TestParameters")]
-        public void DateArchive_AllLoggersTransferToCurrentLogFile(bool concurrentWrites, bool keepFileOpen, bool networkWrites, bool includeSequenceInArchive)
+        public void DateArchive_AllLoggersTransferToCurrentLogFile(bool concurrentWrites, bool keepFileOpen, bool networkWrites, bool includeSequenceInArchive, bool enableArchiveCompression)
         {
             var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            var tempFile = Path.Combine(tempPath, "file.txt");
+            var logfile = Path.Combine(tempPath, "file.txt");
             try
             {
                 var config = new LoggingConfiguration();
@@ -990,12 +992,13 @@ namespace NLog.UnitTests.Targets
                 string archiveFolder = Path.Combine(tempPath, "archive");
                 var fileTarget1 = new FileTarget
                 {
-                    FileName = tempFile,
+                    FileName = logfile,
                     ArchiveFileName = Path.Combine(archiveFolder, "{#}.txt"),
                     LineEnding = LineEndingMode.LF,
                     ArchiveNumbering = includeSequenceInArchive ? ArchiveNumberingMode.DateAndSequence : ArchiveNumberingMode.Date,
                     ArchiveEvery = FileArchivePeriod.Day,
                     ArchiveDateFormat = "yyyyMMdd",
+                    EnableArchiveFileCompression = enableArchiveCompression,
                     Layout = "${message}",
                     ConcurrentWrites = concurrentWrites,
                     KeepFileOpen = keepFileOpen,
@@ -1006,12 +1009,13 @@ namespace NLog.UnitTests.Targets
 
                 var fileTarget2 = new FileTarget
                 {
-                    FileName = tempFile,
+                    FileName = logfile,
                     ArchiveFileName = Path.Combine(archiveFolder, "{#}.txt"),
                     LineEnding = LineEndingMode.LF,
                     ArchiveNumbering = includeSequenceInArchive ? ArchiveNumberingMode.DateAndSequence : ArchiveNumberingMode.Date,
                     ArchiveEvery = FileArchivePeriod.Day,
                     ArchiveDateFormat = "yyyyMMdd",
+                    EnableArchiveFileCompression = enableArchiveCompression,
                     Layout = "${message}",
                     ConcurrentWrites = concurrentWrites,
                     KeepFileOpen = keepFileOpen,
@@ -1027,8 +1031,8 @@ namespace NLog.UnitTests.Targets
 
                 logger1.Debug("123456789");
                 logger2.Debug("123456789");
-                File.SetCreationTime(tempFile, File.GetCreationTime(tempFile).AddDays(-1));
-                File.SetLastWriteTime(tempFile, File.GetLastWriteTime(tempFile).AddDays(-1));
+                File.SetCreationTime(logfile, File.GetCreationTime(logfile).AddDays(-1));
+                File.SetLastWriteTime(logfile, File.GetLastWriteTime(logfile).AddDays(-1));
                 logger1.Debug("123456789");
                 Thread.Sleep(10);
                 logger2.Debug("123456789");
@@ -1036,7 +1040,7 @@ namespace NLog.UnitTests.Targets
                 LogManager.Configuration = null;
                 var files = Directory.GetFiles(archiveFolder);
                 Assert.Equal(1, Directory.GetFiles(archiveFolder).Length);
-                AssertFileContents(tempFile, StringRepeat(2, "123456789\n"), Encoding.UTF8);
+                AssertFileContents(logfile, StringRepeat(2, "123456789\n"), Encoding.UTF8);
             }
             finally
             {
@@ -1045,6 +1049,7 @@ namespace NLog.UnitTests.Targets
                     Directory.Delete(tempPath, true);
             }
         }
+
         [Fact]
         public void DeleteArchiveFilesByDate_MaxArchiveFiles_0()
         {
@@ -1802,7 +1807,7 @@ namespace NLog.UnitTests.Targets
             }
 
         }
-    
+
         [Fact]
         public void FileTarget_Handle_Other_Files_That_Match_Archive_Format()
         {
@@ -1825,8 +1830,8 @@ namespace NLog.UnitTests.Targets
                     ArchiveNumbering = ArchiveNumberingMode.Date,
                     ArchiveDateFormat = "___________yyyyMMddHHmm",
                     MaxArchiveFiles = 10   // Get past the optimization to avoid deleting old files.
-                 };
-        
+                };
+
 
                 SimpleConfigurator.ConfigureForTargetLogging(ft, LogLevel.Debug);
 
@@ -1847,12 +1852,12 @@ namespace NLog.UnitTests.Targets
 
                 if (tempDirectory.Exists)
                 {
-                   tempDirectory.Delete(true);
+                    tempDirectory.Delete(true);
                 }
             }
 
         }
-    
+
         [Fact]
         public void SingleArchiveFileRollsCorrectly()
         {
@@ -2500,7 +2505,6 @@ namespace NLog.UnitTests.Targets
             }
         }
     }
-
 }
 
 #endif
