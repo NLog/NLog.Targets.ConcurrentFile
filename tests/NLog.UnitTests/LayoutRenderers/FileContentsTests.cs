@@ -52,7 +52,7 @@ namespace NLog.UnitTests.LayoutRenderers
                 sw.Write(content);
             }
 
-            this.AssertLayoutRendererOutput("${file-contents:" + fileName + ":encoding=utf-16}", content);
+            AssertLayoutRendererOutput("${file-contents:" + fileName + ":encoding=utf-16}", content);
         }
 
         [Fact]
@@ -65,13 +65,13 @@ namespace NLog.UnitTests.LayoutRenderers
                 sw.Write(content);
             }
 
-            this.AssertLayoutRendererOutput("${file-contents:" + fileName + ":encoding=utf-8}", content);
+            AssertLayoutRendererOutput("${file-contents:" + fileName + ":encoding=utf-8}", content);
         }
 
         [Fact]
         public void FileContentTest2()
         {
-            this.AssertLayoutRendererOutput("${file-contents:nosuchfile.txt}", string.Empty);
+            AssertLayoutRendererOutput("${file-contents:nosuchfile.txt}", string.Empty);
         }
     }
 }
