@@ -59,7 +59,7 @@ namespace NLog.Internal.FileAppenders
         /// list of appenders.
         /// </summary>
         private FileAppenderCache() : this(0, null, null) { }
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="FileAppenderCache"/> class.
         /// </summary>
@@ -135,7 +135,7 @@ namespace NLog.Internal.FileAppenders
         /// Gets the number of appenders which the list can hold.
         /// </summary>
         public int Size { get; private set; }
-        
+
         /// <summary>
         /// It allocates the first slot in the list when the file name does not already in the list and clean up any
         /// unused slots.
@@ -208,16 +208,36 @@ namespace NLog.Internal.FileAppenders
 #if !SILVERLIGHT && !__IOS__ && !__ANDROID__
                 if (!string.IsNullOrEmpty(archiveFilePatternToWatch))
                 {
-                    string directoryPath = Path.GetDirectoryName(archiveFilePatternToWatch);
+                    var archiveFilePatternToWatchPath = GetFullPathForPattern(archiveFilePatternToWatch);
+
+                    string directoryPath = Path.GetDirectoryName(archiveFilePatternToWatchPath);
                     if (!Directory.Exists(directoryPath))
                         Directory.CreateDirectory(directoryPath);
 
-                    externalFileArchivingWatcher.Watch(archiveFilePatternToWatch);
+                    externalFileArchivingWatcher.Watch(archiveFilePatternToWatchPath);
                 }
 #endif
             }
-            
+
             return appenderToWrite;
+        }
+
+        /// <summary>
+        /// Get fullpath for a relative file pattern,  e.g *.log 
+        /// <see cref="Path.GetFullPath"/> crashes on patterns: ArgumentException: Illegal characters in path.
+        /// </summary>
+        /// <param name="pattern"></param>
+        /// <returns></returns>
+        private static string GetFullPathForPattern(string pattern)
+        {
+            string filePattern = Path.GetFileName(pattern);
+            string dir = pattern.Substring(0, pattern.Length - filePattern.Length);
+            // Get absolute path (root+relative)
+            if (string.IsNullOrEmpty(dir))
+            {
+                dir = ".";
+            }
+            return  Path.Combine(Path.GetFullPath(dir), filePattern);
         }
 
         /// <summary>
