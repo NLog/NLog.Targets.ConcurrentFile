@@ -102,6 +102,43 @@ namespace NLog.UnitTests.Targets
             }
         }
 
+        /// <summary>
+        /// There was a bug when creating the file in the root.
+        /// 
+        /// Please note that this test can fail because the unit test doesn't have write access in the root.
+        /// </summary>
+        [Fact]
+        public void SimpleFileTestInRoot()
+        {
+
+            if (NLog.Internal.PlatformDetector.IsWin32)
+            {
+                var logFile = "c:\\nlog-test.log";
+                try
+                {
+                    var fileTarget = WrapFileTarget(new FileTarget
+                    {
+                        FileName = SimpleLayout.Escape(logFile),
+                        LineEnding = LineEndingMode.LF,
+                        Layout = "${level} ${message}",
+                    });
+
+                    SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
+
+                    logger.Debug("aaa");
+                    logger.Info("bbb");
+                    logger.Warn("ccc");
+                    LogManager.Configuration = null;
+                    AssertFileContents(logFile, "Debug aaa\nInfo bbb\nWarn ccc\n", Encoding.UTF8);
+                }
+                finally
+                {
+                    if (File.Exists(logFile))
+                        File.Delete(logFile);
+                }
+            }
+        }
+
         [Fact]
         public void CsvHeaderTest()
         {
