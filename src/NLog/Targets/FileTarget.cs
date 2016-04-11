@@ -202,6 +202,18 @@ namespace NLog.Targets
             this.CleanupFileName = true;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileTarget" /> class.
+        /// </summary>
+        /// <remarks>
+        /// The default value of the layout is: <code>${longdate}|${level:uppercase=true}|${logger}|${message}</code>
+        /// </remarks>
+        /// <param name="name">Name of the target.</param>
+        public FileTarget(string name) : this()
+        {
+            this.Name = name;
+        }
+
 #if NET4_5
         static FileTarget()
         {
