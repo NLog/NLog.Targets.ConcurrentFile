@@ -258,16 +258,24 @@ namespace NLog.Targets
 
         private void SetCachedCleanedFileNamed(Layout value)
         {
-            var simpleLayout = value as SimpleLayout;
-            if (simpleLayout != null && simpleLayout.IsFixedText)
-            {
-                cachedCleanedFileNamed = CleanupInvalidFileNameChars(simpleLayout.FixedText);
-            }
-            else
-            {
-                //clear cache
-                cachedCleanedFileNamed = null;
-            }
+                var simpleLayout = value as SimpleLayout;
+                if (simpleLayout != null && simpleLayout.IsFixedText)
+                {
+                    cachedCleanedFileNamed = CleanupInvalidFileNameChars(simpleLayout.FixedText);
+                }
+                else
+                {
+                    //clear cache
+                    cachedCleanedFileNamed = null;
+                }
+
+                fileName = value;
+
+                if (IsInitialized)
+                {
+                    RefreshFileArchive();
+                    RefreshArchiveFilePatternToWatch();
+                }
         }
 
         /// <summary>
@@ -323,9 +331,9 @@ namespace NLog.Targets
                 keepFileOpen = value;
                 if (IsInitialized)
                 {
-                    RefreshArchiveFilePatternToWatch();
-                }
+                RefreshArchiveFilePatternToWatch();
             }
+        }
         }
 
         /// <summary>
@@ -436,9 +444,9 @@ namespace NLog.Targets
                 concurrentWrites = value;
                 if (IsInitialized)
                 {
-                    RefreshArchiveFilePatternToWatch();
-                }
+                RefreshArchiveFilePatternToWatch();
             }
+        }
         }
 
         /// <summary>
@@ -524,9 +532,9 @@ namespace NLog.Targets
                 archiveAboveSize = value;
                 if (IsInitialized)
                 {
-                    RefreshArchiveFilePatternToWatch();
-                }
+                RefreshArchiveFilePatternToWatch();
             }
+        }
         }
 
         /// <summary>
@@ -552,9 +560,9 @@ namespace NLog.Targets
                 archiveEvery = value;
                 if (IsInitialized)
                 {
-                    RefreshArchiveFilePatternToWatch();
-                }
+                RefreshArchiveFilePatternToWatch();
             }
+        }
         }
 
         /// <summary>
@@ -576,10 +584,10 @@ namespace NLog.Targets
                 if (IsInitialized)
                 {
                     //don't call before initialized because this could lead to stackoverflows.
-                    RefreshFileArchive();
-                    RefreshArchiveFilePatternToWatch();
-                }
+                RefreshFileArchive();
+                RefreshArchiveFilePatternToWatch();
             }
+        }
         }
 
         /// <summary>
@@ -627,9 +635,7 @@ namespace NLog.Targets
                 enableArchiveFileCompression = value;
                 RefreshArchiveFilePatternToWatch();
                 if (IsInitialized)
-                {
                     RefreshArchiveFilePatternToWatch();
-                }
             }
         }
 
@@ -714,7 +720,7 @@ namespace NLog.Targets
                                 {
                                     try
                                     {
-                                        Thread.Sleep(200);
+                                    Thread.Sleep(200);
                                     }
                                     catch (ThreadAbortException ex)
                                     {
