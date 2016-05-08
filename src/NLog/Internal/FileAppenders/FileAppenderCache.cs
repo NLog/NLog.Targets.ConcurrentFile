@@ -36,6 +36,7 @@ namespace NLog.Internal.FileAppenders
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
 
     /// <summary>
     /// Maintains a collection of file appenders usually associated with file targets.
@@ -45,8 +46,8 @@ namespace NLog.Internal.FileAppenders
         private BaseFileAppender[] appenders;
 #if !SILVERLIGHT && !__IOS__ && !__ANDROID__
         private string archiveFilePatternToWatch = null;
-        private bool logFileWasArchived = false;
         private readonly MultiFileWatcher externalFileArchivingWatcher = new MultiFileWatcher(NotifyFilters.FileName);
+        private readonly ManualResetEvent logFileArchiveWaitHandle = new ManualResetEvent(false);
 #endif
 
         /// <summary>
@@ -87,7 +88,20 @@ namespace NLog.Internal.FileAppenders
         private void ExternalFileArchivingWatcher_OnChange(object sender, FileSystemEventArgs e)
         {
             if ((e.ChangeType & WatcherChangeTypes.Created) == WatcherChangeTypes.Created)
-                logFileWasArchived = true;
+            {
+                LogFileWasArchived = true;
+                logFileArchiveWaitHandle.Set();
+            }
+        }
+
+        public bool LogFileWasArchived
+        {
+            get; private set;
+        }
+
+        public EventWaitHandle LogArchiveWaitHandle
+        {
+            get { return logFileArchiveWaitHandle; }
         }
 
         /// <summary>
@@ -102,7 +116,7 @@ namespace NLog.Internal.FileAppenders
                 {
                     archiveFilePatternToWatch = value;
 
-                    logFileWasArchived = false;
+                    LogFileWasArchived = false;
                     externalFileArchivingWatcher.StopWatching();
                 }
             }
@@ -113,10 +127,10 @@ namespace NLog.Internal.FileAppenders
         /// </summary>
         public void InvalidateAppendersForInvalidFiles()
         {
-            if (logFileWasArchived)
+            if (LogFileWasArchived)
             {
                 CloseAppenders();
-                logFileWasArchived = false;
+                LogFileWasArchived = false;
             }
         }
 #endif
