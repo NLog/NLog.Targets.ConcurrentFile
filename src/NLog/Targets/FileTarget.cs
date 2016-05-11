@@ -714,7 +714,7 @@ namespace NLog.Targets
                             // avoid the file from being deleted. Therefore we must periodically close appenders for files that 
                             // were archived so that the file can be deleted.
 
-                            this.appenderInvalidatorThread = new Thread(new ThreadStart(() =>
+                            this.appenderInvalidatorThread = new Thread(() =>
                             {
                                 while (true)
                                 {
@@ -726,7 +726,7 @@ namespace NLog.Targets
                                         {
                                             if (!this.fileAppenderCache.LogFileWasArchived)
                                             {
-                                                // StopAppenderInvalidatorThread() was called.
+                                                //ThreadAbortException will be automatically re-thrown at the end of the try/catch/finally if ResetAbort isn't called.
                                                 break;
                                             }
 
@@ -735,10 +735,10 @@ namespace NLog.Targets
                                     }
                                     catch (Exception ex)
                                     {
-                                        InternalLogger.Info(ex, "Exception in FileTarget appender-invalidator thread.");
+                                        InternalLogger.Debug(ex, "Exception in FileTarget appender-invalidator thread.");
                                     }
                                 }
-                            }));
+                            });
                             this.appenderInvalidatorThread.IsBackground = true;
                             this.appenderInvalidatorThread.Start();
                         }
