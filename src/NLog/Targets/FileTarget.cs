@@ -109,7 +109,9 @@ namespace NLog.Targets
 
         private Timer autoClosingTimer;
 
+#if !SILVERLIGHT && !__IOS__ && !__ANDROID__
         private Thread appenderInvalidatorThread = null;
+#endif
 
         /// <summary>
         /// The number of initialised files at any one time.
@@ -747,6 +749,7 @@ namespace NLog.Targets
                 else
                 {
                     this.fileAppenderCache.ArchiveFilePatternToWatch = null;
+
                     this.StopAppenderInvalidatorThread();
                 }
             }
