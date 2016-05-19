@@ -93,7 +93,7 @@ namespace NLog.Internal.FileAppenders
         /// Gets the file creation time.
         /// </summary>
         /// <value>The file creation time. DateTime value must be of UTC kind.</value>
-        public DateTime CreationTime { get; private set; }
+        public DateTime CreationTime { get; protected set; }
 
         /// <summary>
         /// Gets the open time of the file.
@@ -394,7 +394,7 @@ namespace NLog.Internal.FileAppenders
                 this.CreateFileParameters.BufferSize);
         }
 
-        private void UpdateCreationTime()
+        protected void UpdateCreationTime()
         {
             if (File.Exists(this.FileName))
             {
