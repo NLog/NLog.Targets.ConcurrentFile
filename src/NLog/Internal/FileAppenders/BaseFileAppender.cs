@@ -61,7 +61,11 @@ namespace NLog.Internal.FileAppenders
             this.CreateFileParameters = createParameters;
             this.FileName = fileName;
             this.OpenTime = DateTime.UtcNow; // to be consistent with timeToKill in FileTarget.AutoClosingTimerCallback
+            this.LastWriteTime = DateTime.MinValue;
+            this.CaptureLastWriteTime = createParameters.CaptureLastWriteTime;
         }
+
+        protected bool CaptureLastWriteTime { get; private set; }
 
         /// <summary>
         /// Gets the path of the file, including file extension.
@@ -80,6 +84,12 @@ namespace NLog.Internal.FileAppenders
         /// </summary>
         /// <value>The open time. DateTime value must be of UTC kind.</value>
         public DateTime OpenTime { get; private set; }
+
+        /// <summary>
+        /// Gets the last write time.
+        /// </summary>
+        /// <value>The time the file was last written to. DateTime value must be of UTC kind.</value>
+        public DateTime LastWriteTime { get; private set; }
 
         /// <summary>
         /// Gets the file creation parameters.
@@ -103,11 +113,9 @@ namespace NLog.Internal.FileAppenders
         /// </summary>
         public abstract void Close();
 
-        /// <summary>
-        /// Gets the file info.
-        /// </summary>
-        /// <returns>The file characteristics, if the file information was retrieved successfully, otherwise null.</returns>
-        public abstract FileCharacteristics GetFileCharacteristics();
+        public abstract DateTime? GetFileCreationTimeUtc();
+        public abstract DateTime? GetFileLastWriteTimeUtc();
+        public abstract long? GetFileLength();
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -128,6 +136,26 @@ namespace NLog.Internal.FileAppenders
             {
                 this.Close();
             }
+        }
+
+        /// <summary>
+        /// Updates the last write time of the file.
+        /// </summary>
+        protected void FileTouched()
+        {
+            if (CaptureLastWriteTime)
+            {
+                FileTouched(DateTime.UtcNow);
+            }
+        }
+
+        /// <summary>
+        /// Updates the last write time of the file to the specified date.
+        /// </summary>
+        /// <param name="dateTime">Date and time when the last write occurred in UTC.</param>
+        protected void FileTouched(DateTime dateTime)
+        {
+            this.LastWriteTime = dateTime;
         }
 
         /// <summary>

@@ -31,11 +31,11 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
+using System;
 using System.Security;
 
 namespace NLog.Internal.FileAppenders
 {
-    using System;
     using System.IO;
 
     /// <summary>
@@ -59,13 +59,18 @@ namespace NLog.Internal.FileAppenders
         public CountingSingleProcessFileAppender(string fileName, ICreateFileParameters parameters)
             : base(fileName, parameters)
         {
-            var fi = new FileInfo(fileName);
-            if (fi.Exists)
+            var fileInfo = new FileInfo(fileName);
+            if (fileInfo.Exists)
             {
-                this.currentFileLength = fi.Length;
+                if (CaptureLastWriteTime)
+                {
+                    FileTouched(fileInfo.GetLastWriteTimeUtc());
+                }
+                this.currentFileLength = fileInfo.Length;
             }
             else
             {
+                FileTouched();
                 this.currentFileLength = 0;
             }
 
@@ -95,15 +100,22 @@ namespace NLog.Internal.FileAppenders
             }
 
             this.file.Flush();
+            FileTouched();
         }
 
-        /// <summary>
-        /// Gets the file info.
-        /// </summary>
-        /// <returns>The file characteristics, if the file information was retrieved successfully, otherwise null.</returns>
-        public override FileCharacteristics GetFileCharacteristics()
+        public override DateTime? GetFileCreationTimeUtc()
         {
-            return new FileCharacteristics(this.OpenTime, this.currentFileLength);
+            return this.CreationTime;
+        }
+
+        public override DateTime? GetFileLastWriteTimeUtc()
+        {
+            return this.LastWriteTime;
+        }
+
+        public override long? GetFileLength()
+        {
+            return this.currentFileLength;
         }
 
         /// <summary>
@@ -119,6 +131,10 @@ namespace NLog.Internal.FileAppenders
 
             this.currentFileLength += bytes.Length;
             this.file.Write(bytes, 0, bytes.Length);
+            if (CaptureLastWriteTime)
+            {
+                FileTouched();
+            }
         }
 
         /// <summary>
