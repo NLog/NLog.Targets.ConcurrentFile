@@ -178,13 +178,23 @@ namespace NLog.Internal.FileAppenders
                     }
                     catch (DirectoryNotFoundException)
                     {
+                        //we don't check the directory on beforehand, as that will really slow down writing.
                         if (!this.CreateFileParameters.CreateDirs)
                         {
                             throw;
                         }
-
-                        Directory.CreateDirectory(Path.GetDirectoryName(this.FileName));
+                        var directoryName = Path.GetDirectoryName(this.FileName);
+                        try
+                        {
+                            Directory.CreateDirectory(directoryName);
+                        }
+                        catch (DirectoryNotFoundException)
+                        {
+                            //if creating a directory failed, don't retry for this message (e.g the ConcurrentWriteAttempts below)
+                            throw new NLogRuntimeException("Could not create directory {0}", directoryName);
+                        }
                         return this.TryCreateFileStream(allowFileSharedWriting);
+
                     }
                 }
                 catch (IOException)
