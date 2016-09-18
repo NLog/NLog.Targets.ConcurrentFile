@@ -1778,6 +1778,7 @@ namespace NLog.Targets
             var archiveFile = this.GetAutoArchiveFileName(fileName, ev, upcomingWriteSize);
             if (!string.IsNullOrEmpty(archiveFile))
             {
+#if !SILVERLIGHT
                 Mutex archiveMutex = this.fileAppenderCache.GetArchiveMutex(fileName);
                 try
                 {
@@ -1790,6 +1791,7 @@ namespace NLog.Targets
                     // the mutex has been acquired, so proceed to writing
                     // See: http://msdn.microsoft.com/en-us/library/system.threading.abandonedmutexexception.aspx
                 }
+#endif
                 try
                 {
                     archiveFile = this.GetAutoArchiveFileName(fileName, ev, upcomingWriteSize);
@@ -1800,8 +1802,10 @@ namespace NLog.Targets
                 }
                 finally
                 {
+#if !SILVERLIGHT
                     if (archiveMutex != null)
                         archiveMutex.ReleaseMutex();
+#endif
                 }
             }
         }
