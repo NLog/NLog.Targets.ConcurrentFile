@@ -1831,11 +1831,7 @@ namespace NLog.Targets
 #endif
                 try
                 {
-                    archiveFile = this.GetAutoArchiveFileName(fileName, ev, upcomingWriteSize);
-                    if (!string.IsNullOrEmpty(archiveFile))
-                    {
-                        this.DoAutoArchive(archiveFile, ev);
-                    }
+                    this.DoAutoArchive(archiveFile, ev);
                 }
                 catch (Exception exception)
                 {
