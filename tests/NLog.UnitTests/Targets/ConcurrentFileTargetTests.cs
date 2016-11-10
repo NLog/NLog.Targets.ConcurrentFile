@@ -61,7 +61,7 @@ namespace NLog.UnitTests.Targets
             ft.OpenFileCacheTimeout = 10;
             ft.OpenFileCacheSize = 1;
             ft.LineEnding = LineEndingMode.LF;
-            ft.PreferMutexLockedFileCreation = modes.Length == 2 && modes[1] == "mutex" ? true : false;
+            ft.ForceMutexConcurrentWrites = modes.Length == 2 && modes[1] == "mutex" ? true : false;
 
             var name = "ConfigureSharedFile_" + mode.Replace('|', '_') + "-wrapper";
 
@@ -101,12 +101,12 @@ namespace NLog.UnitTests.Targets
             //InternalLogger.LogToConsole = true;
 
             string format = processIndex + " {0}";
-            
+
             for (int i = 0; i < numLogs; ++i)
             {
                 logger.Debug(format, i);
             }
-            
+
             LogManager.Configuration = null;
         }
 
@@ -128,11 +128,11 @@ namespace NLog.UnitTests.Targets
             for (int i = 0; i < numProcesses; ++i)
             {
                 processes[i] = ProcessRunner.SpawnMethod(
-                    this.GetType(), 
-                    "Process", 
+                    this.GetType(),
+                    "Process",
                     i.ToString(),
-                    numProcesses.ToString(), 
-                    numLogs.ToString(), 
+                    numProcesses.ToString(),
+                    numLogs.ToString(),
                     mode);
             }
 
@@ -147,7 +147,7 @@ namespace NLog.UnitTests.Targets
             }
 
             int[] maxNumber = new int[numProcesses];
-   
+
             Console.WriteLine("Verifying output file {0}", logFile);
             using (StreamReader sr = File.OpenText(logFile))
             {
