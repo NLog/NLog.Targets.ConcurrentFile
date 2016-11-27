@@ -607,7 +607,7 @@ namespace NLog.UnitTests.Targets
                 {
                     FileName = logFile,
                     ArchiveFileName = Path.Combine(archiveFolder, "{####}.txt"),
-                    ArchiveAboveSize = 1000,
+                    ArchiveAboveSize = 100,
                     LineEnding = LineEndingMode.LF,
                     Layout = "${message}",
                     MaxArchiveFiles = 3,
@@ -616,33 +616,34 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
 
-                // we emit 5 * 250 *(3 x aaa + \n) bytes
+                // we emit 5 * 25 *(3 x aaa + \n) bytes
                 // so that we should get a full file + 3 archives
-                Generate1000BytesLog('a');
-                Generate1000BytesLog('b');
-                Generate1000BytesLog('c');
-                Generate1000BytesLog('d');
-                Generate1000BytesLog('e');
+                Generate100BytesLog('a');
+                Generate100BytesLog('b');
+                Generate100BytesLog('c');
+                Generate100BytesLog('d');
+                Generate100BytesLog('e');
 
                 LogManager.Configuration = null;
 
+                var times = 25;
                 AssertFileContents(logFile,
-                    StringRepeat(250, "eee\n"),
+                    StringRepeat(times, "eee\n"),
                     Encoding.UTF8);
 
                 AssertFileContents(
                     Path.Combine(archiveFolder, "0001.txt"),
-                    StringRepeat(250, "bbb\n"),
+                    StringRepeat(times, "bbb\n"),
                     Encoding.UTF8);
 
                 AssertFileContents(
                     Path.Combine(archiveFolder, "0002.txt"),
-                    StringRepeat(250, "ccc\n"),
+                    StringRepeat(times, "ccc\n"),
                     Encoding.UTF8);
 
                 AssertFileContents(
                     Path.Combine(archiveFolder, "0003.txt"),
-                    StringRepeat(250, "ddd\n"),
+                    StringRepeat(times, "ddd\n"),
                     Encoding.UTF8);
                 //0000 should not extists because of MaxArchiveFiles=3
                 Assert.True(!File.Exists(Path.Combine(archiveFolder, "0000.txt")));
@@ -678,7 +679,7 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
 
-                // we emit 5 * 250 *(3 x aaa + \n) bytes
+                // we emit 5 * 25 *(3 x aaa + \n) bytes
                 // so that we should get a full file + 4 archives
                 Generate100BytesLog('a');
                 Generate100BytesLog('b');
@@ -746,7 +747,7 @@ namespace NLog.UnitTests.Targets
                 //e.g. 20150804
                 var archiveFileName = DateTime.Now.ToString("yyyyMMdd");
 
-                // we emit 5 * 250 *(3 x aaa + \n) bytes
+                // we emit 5 * 25 *(3 x aaa + \n) bytes
                 // so that we should get a full file + 3 archives
                 for (var i = 0; i < 250; ++i)
                 {
@@ -1568,7 +1569,7 @@ namespace NLog.UnitTests.Targets
                     EnableArchiveFileCompression = enableCompression,
 #endif
                     FileName = logFile,
-                    ArchiveAboveSize = 1000,
+                    ArchiveAboveSize = 100,
                     LineEnding = LineEndingMode.LF,
                     ArchiveNumbering = ArchiveNumberingMode.Rolling,
                     Layout = "${message}",
@@ -1582,11 +1583,11 @@ namespace NLog.UnitTests.Targets
 
                 // we emit 5 * 250 * (3 x aaa + \n) bytes
                 // so that we should get a full file + 3 archives
-                Generate1000BytesLog('a');
-                Generate1000BytesLog('b');
-                Generate1000BytesLog('c');
-                Generate1000BytesLog('d');
-                Generate1000BytesLog('e');
+                Generate100BytesLog('a');
+                Generate100BytesLog('b');
+                Generate100BytesLog('c');
+                Generate100BytesLog('d');
+                Generate100BytesLog('e');
 
                 LogManager.Configuration = null;
 
@@ -1597,8 +1598,9 @@ namespace NLog.UnitTests.Targets
  new Action<string, string, Encoding>(AssertFileContents);
 #endif
 
+                var times = 25;
                 AssertFileContents(logFile,
-                    StringRepeat(250, "eee\n"),
+                    StringRepeat(times, "eee\n"),
                     Encoding.UTF8);
 
                 string archiveFileNameFormat = specifyArchiveFileName
@@ -1607,17 +1609,17 @@ namespace NLog.UnitTests.Targets
 
                 assertFileContents(
                     Path.Combine(tempPath, string.Format(archiveFileNameFormat, 0)),
-                    StringRepeat(250, "ddd\n"),
+                    StringRepeat(times, "ddd\n"),
                     Encoding.UTF8);
 
                 assertFileContents(
                     Path.Combine(tempPath, string.Format(archiveFileNameFormat, 1)),
-                    StringRepeat(250, "ccc\n"),
+                    StringRepeat(times, "ccc\n"),
                     Encoding.UTF8);
 
                 assertFileContents(
                     Path.Combine(tempPath, string.Format(archiveFileNameFormat, 2)),
-                    StringRepeat(250, "bbb\n"),
+                    StringRepeat(times, "bbb\n"),
                     Encoding.UTF8);
 
                 Assert.True(!File.Exists(Path.Combine(tempPath, string.Format(archiveFileNameFormat, 3))));
@@ -1936,7 +1938,7 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
 
-                // we emit 5 * 250 *(3 x aaa + \n) bytes
+                // we emit 5 * 25 *(3 x aaa + \n) bytes
                 // so that we should get a full file + 3 archives
                 Generate100BytesLog('a');
                 Generate100BytesLog('b');
@@ -2379,15 +2381,6 @@ namespace NLog.UnitTests.Targets
                     File.Delete(logFile);
                 if (Directory.Exists(tempPath))
                     Directory.Delete(tempPath, true);
-            }
-        }
-
-        private void Generate1000BytesLog(char c)
-        {
-            for (var i = 0; i < 250; ++i)
-            {
-                //3 chars with newlines = 4 bytes
-                logger.Debug(new string(c, 3));
             }
         }
 
@@ -3045,7 +3038,7 @@ namespace NLog.UnitTests.Targets
                 {
                     FileName = logfile,
                     ArchiveFileName = Path.Combine(archiveFolder, "{####}.txt"),
-                    ArchiveAboveSize = 1000,
+                    ArchiveAboveSize = 100,
                     LineEnding = LineEndingMode.LF,
                     ArchiveNumbering = ArchiveNumberingMode.Sequence,
                     Layout = "${message}",
@@ -3054,38 +3047,39 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
                 logfile = Path.GetFullPath(logfile);
-                // we emit 5 * 250 *(3 x aaa + \n) bytes
+                // we emit 5 * 25 *(3 x aaa + \n) bytes
                 // so that we should get a full file + 4 archives
-                Generate1000BytesLog('a');
-                Generate1000BytesLog('b');
-                Generate1000BytesLog('c');
-                Generate1000BytesLog('d');
-                Generate1000BytesLog('e');
+                Generate100BytesLog('a');
+                Generate100BytesLog('b');
+                Generate100BytesLog('c');
+                Generate100BytesLog('d');
+                Generate100BytesLog('e');
 
                 LogManager.Configuration = null;
 
+                var times = 25;
                 AssertFileContents(logfile,
-                    StringRepeat(250, "eee\n"),
+                    StringRepeat(times, "eee\n"),
                     Encoding.UTF8);
 
                 AssertFileContents(
                    Path.Combine(archiveFolder, "0000.txt"),
-                   StringRepeat(250, "aaa\n"),
+                   StringRepeat(times, "aaa\n"),
                    Encoding.UTF8);
 
                 AssertFileContents(
                     Path.Combine(archiveFolder, "0001.txt"),
-                    StringRepeat(250, "bbb\n"),
+                    StringRepeat(times, "bbb\n"),
                     Encoding.UTF8);
 
                 AssertFileContents(
                     Path.Combine(archiveFolder, "0002.txt"),
-                    StringRepeat(250, "ccc\n"),
+                    StringRepeat(times, "ccc\n"),
                     Encoding.UTF8);
 
                 AssertFileContents(
                     Path.Combine(archiveFolder, "0003.txt"),
-                    StringRepeat(250, "ddd\n"),
+                    StringRepeat(times, "ddd\n"),
                     Encoding.UTF8);
 
                 Assert.True(!File.Exists(Path.Combine(archiveFolder, "0004.txt")));
