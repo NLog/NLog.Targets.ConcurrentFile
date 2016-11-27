@@ -736,7 +736,7 @@ namespace NLog.UnitTests.Targets
                 {
                     FileName = logFile,
                     ArchiveFileName = Path.Combine(archiveFolder, "{####}.txt"),
-                    ArchiveAboveSize = 1000,
+                    ArchiveAboveSize = 100,
                     LineEnding = LineEndingMode.LF,
                     Layout = "${message}",
                     ArchiveNumbering = ArchiveNumberingMode.Date
@@ -749,24 +749,25 @@ namespace NLog.UnitTests.Targets
 
                 // we emit 5 * 25 *(3 x aaa + \n) bytes
                 // so that we should get a full file + 3 archives
-                for (var i = 0; i < 250; ++i)
+                var times = 25;
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("aaa");
                 }
 
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("bbb");
                 }
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("ccc");
                 }
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("ddd");
                 }
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("eee");
                 }
@@ -776,14 +777,14 @@ namespace NLog.UnitTests.Targets
 
                 //we expect only eee and all other in the archive
                 AssertFileContents(logFile,
-                    StringRepeat(250, "eee\n"),
+                    StringRepeat(times, "eee\n"),
                     Encoding.UTF8);
 
                 //DUNNO what to expected!
                 //try (which fails)
                 AssertFileContents(
                     Path.Combine(archiveFolder, string.Format("{0}.txt", archiveFileName)),
-                   StringRepeat(250, "aaa\n") + StringRepeat(250, "bbb\n") + StringRepeat(250, "ccc\n") + StringRepeat(250, "ddd\n"),
+                   StringRepeat(times, "aaa\n") + StringRepeat(times, "bbb\n") + StringRepeat(times, "ccc\n") + StringRepeat(times, "ddd\n"),
                     Encoding.UTF8);
 
             }
@@ -1581,7 +1582,7 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
 
-                // we emit 5 * 250 * (3 x aaa + \n) bytes
+                // we emit 5 * 25 * (3 x aaa + \n) bytes
                 // so that we should get a full file + 3 archives
                 Generate100BytesLog('a');
                 Generate100BytesLog('b');
@@ -1655,7 +1656,7 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
 
-                // we emit 5 * 250 * (3 x aaa + \n) bytes
+                // we emit 5 * 25 * (3 x aaa + \n) bytes
                 // so that we should get a full file + 4 archives
                 Generate100BytesLog('a');
                 Generate100BytesLog('b');
@@ -1720,7 +1721,8 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
 
-                for (var i = 0; i < 250; ++i)
+                var times = 25;
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Trace("@@@");
                     logger.Debug("aaa");
@@ -1735,19 +1737,19 @@ namespace NLog.UnitTests.Targets
                 Assert.False(File.Exists(Path.Combine(tempPath, "Trace.txt")));
 
                 AssertFileContents(Path.Combine(tempPath, "Debug.txt"),
-                    StringRepeat(250, "aaa\n"), Encoding.UTF8);
+                    StringRepeat(times, "aaa\n"), Encoding.UTF8);
 
                 AssertFileContents(Path.Combine(tempPath, "Info.txt"),
-                    StringRepeat(250, "bbb\n"), Encoding.UTF8);
+                    StringRepeat(times, "bbb\n"), Encoding.UTF8);
 
                 AssertFileContents(Path.Combine(tempPath, "Warn.txt"),
-                    StringRepeat(250, "ccc\n"), Encoding.UTF8);
+                    StringRepeat(times, "ccc\n"), Encoding.UTF8);
 
                 AssertFileContents(Path.Combine(tempPath, "Error.txt"),
-                    StringRepeat(250, "ddd\n"), Encoding.UTF8);
+                    StringRepeat(times, "ddd\n"), Encoding.UTF8);
 
                 AssertFileContents(Path.Combine(tempPath, "Fatal.txt"),
-                    StringRepeat(250, "eee\n"), Encoding.UTF8);
+                    StringRepeat(times, "eee\n"), Encoding.UTF8);
             }
             finally
             {
@@ -1771,7 +1773,8 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(new BufferingTargetWrapper(fileTarget, 10), LogLevel.Debug);
 
-                for (var i = 0; i < 250; ++i)
+                var times = 25;
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Trace("@@@");
                     logger.Debug("aaa");
@@ -1786,19 +1789,19 @@ namespace NLog.UnitTests.Targets
                 Assert.False(File.Exists(Path.Combine(tempPath, "Trace.txt")));
 
                 AssertFileContents(Path.Combine(tempPath, "Debug.txt"),
-                    StringRepeat(250, "aaa\n"), Encoding.UTF8);
+                    StringRepeat(times, "aaa\n"), Encoding.UTF8);
 
                 AssertFileContents(Path.Combine(tempPath, "Info.txt"),
-                    StringRepeat(250, "bbb\n"), Encoding.UTF8);
+                    StringRepeat(times, "bbb\n"), Encoding.UTF8);
 
                 AssertFileContents(Path.Combine(tempPath, "Warn.txt"),
-                    StringRepeat(250, "ccc\n"), Encoding.UTF8);
+                    StringRepeat(times, "ccc\n"), Encoding.UTF8);
 
                 AssertFileContents(Path.Combine(tempPath, "Error.txt"),
-                    StringRepeat(250, "ddd\n"), Encoding.UTF8);
+                    StringRepeat(times, "ddd\n"), Encoding.UTF8);
 
                 AssertFileContents(Path.Combine(tempPath, "Fatal.txt"),
-                    StringRepeat(250, "eee\n"), Encoding.UTF8);
+                    StringRepeat(times, "eee\n"), Encoding.UTF8);
             }
             finally
             {
@@ -1826,7 +1829,7 @@ namespace NLog.UnitTests.Targets
 
                 var threadID = Thread.CurrentThread.ManagedThreadId.ToString();
 
-                SimpleConfigurator.ConfigureForTargetLogging(new AsyncTargetWrapper(fileTarget, 100, AsyncTargetWrapperOverflowAction.Grow)
+                SimpleConfigurator.ConfigureForTargetLogging(new AsyncTargetWrapper(fileTarget, 10, AsyncTargetWrapperOverflowAction.Grow)
                 {
                     Name = "AsyncMultiFileWrite_wrapper"
                 }, LogLevel.Debug);
@@ -2151,7 +2154,7 @@ namespace NLog.UnitTests.Targets
                 {
                     FileName = logFile,
                     ArchiveFileName = Path.Combine(tempPath, "archive", "file.txt2"),
-                    ArchiveAboveSize = 1000,
+                    ArchiveAboveSize = 100,
                     LineEnding = LineEndingMode.LF,
                     Layout = "${message}",
                     MaxArchiveFiles = 1,
@@ -2159,26 +2162,27 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
 
-                // we emit 2 * 250 *(aaa + \n) bytes
+                // we emit 2 * 25 *(aaa + \n) bytes
                 // so that we should get a full file + 1 archives
-                for (var i = 0; i < 250; ++i)
+                var times = 25;
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("aaa");
                 }
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("bbb");
                 }
 
                 AssertFileContents(logFile,
-                    StringRepeat(250, "bbb\n"),
+                    StringRepeat(times, "bbb\n"),
                     Encoding.UTF8);
                 AssertFileContents(
                     Path.Combine(tempPath, "archive", "file.txt2"),
-                    StringRepeat(250, "aaa\n"),
+                    StringRepeat(times, "aaa\n"),
                     Encoding.UTF8);
 
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("ccc");
                 }
@@ -2186,11 +2190,11 @@ namespace NLog.UnitTests.Targets
                 LogManager.Configuration = null;
 
                 AssertFileContents(logFile,
-                    StringRepeat(250, "ccc\n"),
+                    StringRepeat(times, "ccc\n"),
                     Encoding.UTF8);
                 AssertFileContents(
                     Path.Combine(tempPath, "archive", "file.txt2"),
-                    StringRepeat(250, "bbb\n"),
+                    StringRepeat(times, "bbb\n"),
                     Encoding.UTF8);
             }
             finally
@@ -2213,7 +2217,7 @@ namespace NLog.UnitTests.Targets
                 {
                     FileName = logFile,
                     ArchiveFileName = Path.Combine(tempPath, "archive", "file.txt2"),
-                    ArchiveAboveSize = 1000,
+                    ArchiveAboveSize = 100,
                     LineEnding = LineEndingMode.LF,
                     Layout = "${message}",
                     MaxArchiveFiles = 2,
@@ -2221,34 +2225,35 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
 
-                // we emit 3 * 250 *(aaa + \n) bytes
+                // we emit 3 * 25 *(aaa + \n) bytes
                 // so that we should get a full file + 2 archives
-                for (var i = 0; i < 250; ++i)
+                var times = 25;
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("aaa");
                 }
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("bbb");
                 }
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("ccc");
                 }
 
                 AssertFileContents(logFile,
-                    StringRepeat(250, "ccc\n"),
+                    StringRepeat(times, "ccc\n"),
                     Encoding.UTF8);
                 AssertFileContents(
                     Path.Combine(tempPath, "archive", "file.1.txt2"),
-                    StringRepeat(250, "bbb\n"),
+                    StringRepeat(times, "bbb\n"),
                     Encoding.UTF8);
                 AssertFileContents(
                     Path.Combine(tempPath, "archive", "file.txt2"),
-                    StringRepeat(250, "aaa\n"),
+                    StringRepeat(times, "aaa\n"),
                     Encoding.UTF8);
 
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("ddd");
                 }
@@ -2256,15 +2261,15 @@ namespace NLog.UnitTests.Targets
                 LogManager.Configuration = null;
 
                 AssertFileContents(logFile,
-                    StringRepeat(250, "ddd\n"),
+                    StringRepeat(times, "ddd\n"),
                     Encoding.UTF8);
                 AssertFileContents(
                     Path.Combine(tempPath, "archive", "file.2.txt2"),
-                    StringRepeat(250, "ccc\n"),
+                    StringRepeat(times, "ccc\n"),
                     Encoding.UTF8);
                 AssertFileContents(
                     Path.Combine(tempPath, "archive", "file.1.txt2"),
-                    StringRepeat(250, "bbb\n"),
+                    StringRepeat(times, "bbb\n"),
                     Encoding.UTF8);
                 Assert.False(File.Exists(Path.Combine(tempPath, "archive", "file.txt2")));
             }
@@ -2292,7 +2297,7 @@ namespace NLog.UnitTests.Targets
                 {
                     FileName = logFile,
                     ArchiveFileName = Path.Combine(tempPath, "archive", "file.txt2"),
-                    ArchiveAboveSize = 1000,
+                    ArchiveAboveSize = 100,
                     LineEnding = LineEndingMode.LF,
                     Layout = "${message}",
                     MaxArchiveFiles = 2,
@@ -2300,23 +2305,24 @@ namespace NLog.UnitTests.Targets
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
 
-                // we emit 2 * 250 *(aaa + \n) bytes
+                // we emit 2 * 25 *(aaa + \n) bytes
                 // so that we should get a full file + 1 archive
-                for (var i = 0; i < 250; ++i)
+                var times = 25;
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("aaa");
                 }
-                for (var i = 0; i < 250; ++i)
+                for (var i = 0; i < times; ++i)
                 {
                     logger.Debug("bbb");
                 }
 
                 AssertFileContents(logFile,
-                    StringRepeat(250, "bbb\n"),
+                    StringRepeat(times, "bbb\n"),
                     Encoding.UTF8);
                 AssertFileContents(
                     Path.Combine(tempPath, "archive", "file.11.txt2"),
-                    StringRepeat(250, "aaa\n"),
+                    StringRepeat(times, "aaa\n"),
                     Encoding.UTF8);
                 Assert.True(File.Exists(Path.Combine(tempPath, "archive", "file.10.txt2")));
                 Assert.False(File.Exists(Path.Combine(tempPath, "archive", "file.9.txt2")));
