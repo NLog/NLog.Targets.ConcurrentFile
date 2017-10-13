@@ -176,7 +176,7 @@ namespace NLog.UnitTests.Targets
                 for (int i = 0; i < numProcesses; ++i)
                 {
                     processes[i] = ProcessRunner.SpawnMethod(
-                        this.GetType(),
+                        GetType(),
                         "Process",
                         i.ToString(),
                         logFile,
