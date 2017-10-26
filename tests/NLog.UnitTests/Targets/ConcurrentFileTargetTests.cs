@@ -254,17 +254,17 @@ namespace NLog.UnitTests.Targets
         }
 
         [Theory]
+        [InlineData(2, 10000, "none")]
+        [InlineData(5, 4000, "none")]
+        [InlineData(10, 2000, "none")]
 #if !MONO
         // MONO Doesn't work well with global mutex, and it is needed for succesful concurrent archive operations
         [InlineData(2, 500, "none|archive")]
         [InlineData(2, 500, "none|mutex|archive")]
-#endif
-        [InlineData(2, 10000, "none")]
-        [InlineData(5, 4000, "none")]
-        [InlineData(10, 2000, "none")]
         [InlineData(2, 10000, "none|mutex")]
         [InlineData(5, 4000, "none|mutex")]
         [InlineData(10, 2000, "none|mutex")]
+#endif
         public void SimpleConcurrentTest(int numProcesses, int numLogs, string mode)
         {
             DoConcurrentTest(numProcesses, numLogs, mode);
@@ -272,7 +272,9 @@ namespace NLog.UnitTests.Targets
 
         [Theory]
         [InlineData("async")]
+#if !MONO
         [InlineData("async|mutex")]
+#endif
         public void AsyncConcurrentTest(string mode)
         {
             // Before 2 processes are running into concurrent writes, 
@@ -286,7 +288,9 @@ namespace NLog.UnitTests.Targets
 
         [Theory]
         [InlineData("buffered")]
+#if !MONO
         [InlineData("buffered|mutex")]
+#endif
         public void BufferedConcurrentTest(string mode)
         {
             DoConcurrentTest(5, 1000, mode);
@@ -294,11 +298,14 @@ namespace NLog.UnitTests.Targets
 
         [Theory]
         [InlineData("buffered_timed_flush")]
+#if !MONO
         [InlineData("buffered_timed_flush|mutex")]
+#endif
         public void BufferedTimedFlushConcurrentTest(string mode)
         {
             DoConcurrentTest(5, 1000, mode);
         }
+
     }
 }
 
