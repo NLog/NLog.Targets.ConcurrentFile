@@ -123,17 +123,17 @@ namespace NLog.UnitTests.Targets
             try
 #endif
             {
-
-
-                Thread.Sleep(Math.Max((10 - idxProcess), 1) * 5);  // Delay to wait for the other processes
-
-                for (int i = 0; i < numLogs; ++i)
+                using (new NoThrowNLogExceptions())
                 {
-                    logger.Debug(format, i);
+                    Thread.Sleep(Math.Max((10 - idxProcess), 1) * 5);  // Delay to wait for the other processes
+
+                    for (int i = 0; i < numLogs; ++i)
+                    {
+                        logger.Debug(format, i);
+                    }
+
+                    LogManager.Configuration = null;     // Flush + Close
                 }
-
-                LogManager.Configuration = null;     // Flush + Close
-
             }
 #if !DISABLE_FILE_INTERNAL_LOGGING
             catch (Exception ex)
@@ -310,9 +310,6 @@ namespace NLog.UnitTests.Targets
             RetryingIntegrationTest(3, () => DoConcurrentTest(numProcesses, numLogs, mode));
         }
 
-
-
-
         [Theory]
         [InlineData("async")]
 #if !MONO
@@ -348,7 +345,6 @@ namespace NLog.UnitTests.Targets
         {
             DoConcurrentTest(5, 1000, mode);
         }
-
     }
 }
 
