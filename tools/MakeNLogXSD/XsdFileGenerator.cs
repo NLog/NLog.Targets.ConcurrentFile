@@ -282,6 +282,9 @@ namespace MakeNLogXSD
                 case "Layout":
                     return attribute ? "SimpleLayoutAttribute" : "Layout";
 
+                case "NLog.Filters.Filter":
+                    return "Filter";
+
                 case "Condition":
                     return "Condition";
 
