@@ -62,7 +62,7 @@ namespace NLog.UnitTests.Targets
             FileTarget ft = new FileTarget();
             ft.FileName = fileName;
             ft.Layout = "${message}";
-            ft.KeepFileOpen = true;
+            ft.ConcurrentWrites = true;
             ft.OpenFileCacheTimeout = 10;
             ft.OpenFileCacheSize = 1;
             ft.LineEnding = LineEndingMode.LF;
