@@ -81,7 +81,7 @@ namespace NLog.Targets
         private const int ArchiveAboveSizeDisabled = -1;
 
         /// <summary>
-        /// Holds the initialised files each given time by the <see cref="FileTarget"/> instance. Against each file, the last write time is stored. 
+        /// Holds the initialized files each given time by the <see cref="FileTarget"/> instance. Against each file, the last write time is stored. 
         /// </summary>
         /// <remarks>Last write time is store in local time (no UTC).</remarks>
         private readonly Dictionary<string, DateTime> _initializedFiles = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
@@ -1652,7 +1652,7 @@ namespace NLog.Targets
         /// </summary>
         /// <param name="fileName">Filename of the log file</param>
         /// <param name="eventInfo">Log event that the <see cref="FileTarget"/> instance is currently processing.</param>
-        /// <returns>A string with a pattern that will match the archive filenames</returns>
+        /// <returns>A string with a pattern that will match the archive file names</returns>
         private string GetArchiveFileNamePattern(string fileName, LogEventInfo eventInfo)
         {
             if (_fullArchiveFileName == null)
@@ -2307,7 +2307,7 @@ namespace NLog.Targets
         }
 
         /// <summary>
-        /// The sequence of <see langword="byte"/> to be written in a file after applying any formating and any
+        /// The sequence of <see langword="byte"/> to be written in a file after applying any formatting and any
         /// transformations required from the <see cref="Layout"/>.
         /// </summary>
         /// <param name="layout">The layout used to render output message.</param>

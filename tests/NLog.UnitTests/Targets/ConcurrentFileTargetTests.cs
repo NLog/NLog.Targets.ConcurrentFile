@@ -155,7 +155,7 @@ namespace NLog.UnitTests.Targets
 
         private string MakeFileName(int numProcesses, int numLogs, string mode)
         {
-            // Having separate filenames for the various tests makes debugging easier.
+            // Having separate file names for the various tests makes debugging easier.
             return $"test_{numProcesses}_{numLogs}_{mode.Replace('|', '_')}.txt";
         }
 
