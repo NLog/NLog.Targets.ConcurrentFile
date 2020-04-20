@@ -31,27 +31,23 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-using NLog.Internal.FileAppenders;
-using NSubstitute;
-
 namespace NLog.UnitTests.Targets
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading;
-    using Xunit;
-    using Xunit.Extensions;
-
     using Mocks;
+    using NSubstitute;
+    using Xunit;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
     using NLog.Targets.Wrappers;
-    using Time;
-    using System.Globalization;
+    using NLog.Time;
 
     public abstract class FileTargetTests : NLogTestBase
     {
@@ -2328,7 +2324,6 @@ namespace NLog.UnitTests.Targets
                 // this also checks that thread-volatile layouts
                 // such as ${threadid} are properly cached and not recalculated
                 // in logging threads.
-
                 var threadID = Thread.CurrentThread.ManagedThreadId.ToString();
 
                 SimpleConfigurator.ConfigureForTargetLogging(new AsyncTargetWrapper(fileTarget, 10, AsyncTargetWrapperOverflowAction.Grow)
@@ -2336,7 +2331,6 @@ namespace NLog.UnitTests.Targets
                     Name = "AsyncMultiFileWrite_wrapper",
                     TimeToSleepBetweenBatches = 1,
                 }, LogLevel.Debug);
-                LogManager.ThrowExceptions = true;
 
                 var times = 25;
                 for (var i = 0; i < times; ++i)
@@ -2372,9 +2366,6 @@ namespace NLog.UnitTests.Targets
             {
                 if (Directory.Exists(tempPath))
                     Directory.Delete(tempPath, true);
-
-                // Clean up configuration change, breaks onetimeonlyexceptioninhandlertest
-                LogManager.ThrowExceptions = true;
             }
         }
 
@@ -3814,7 +3805,7 @@ namespace NLog.UnitTests.Targets
         [Fact]
         public void RelativeSequentialArchiveTest_MaxArchiveFiles_0()
         {
-            var tempPath = Guid.NewGuid().ToString();
+            string tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var logfile = Path.Combine(tempPath, "file.txt");
             try
             {
@@ -3938,7 +3929,7 @@ namespace NLog.UnitTests.Targets
         {
             using (new NoThrowNLogExceptions())
             {
-                var fileTarget = WrapFileTarget(new FileTarget { FileName = "${logger}", Layout = "${message}" });
+                var fileTarget = WrapFileTarget(new FileTarget { FileName = "${logger}", Layout = "${message}", DiscardAll = true });
                 fileTarget.Initialize(null);
 
                 // make sure that when file names get sorted, the asynchronous continuations are sorted with them as well
@@ -3959,6 +3950,49 @@ namespace NLog.UnitTests.Targets
                 Assert.NotNull(exceptions[1]);
                 Assert.NotNull(exceptions[2]);
                 Assert.NotNull(exceptions[3]);
+            }
+        }
+
+        [Fact]
+        public void BatchBufferOverflowTest()
+        {
+            string tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var logfile = Path.Combine(tempPath, "file.txt");
+            try
+            {
+                // Arrange
+                var fileTarget = WrapFileTarget(new FileTarget
+                {
+                    FileName = logfile,
+                    BufferSize = 5,
+                    LineEnding = LineEndingMode.LF,
+                    Layout = "${message}",
+                    Encoding = Encoding.UTF8,
+                });
+                fileTarget.Initialize(null);
+
+                var result = new List<int>();
+                var events = new List<NLog.Common.AsyncLogEventInfo>();
+                var times = 200;
+                for (int i = 1; i <= times; ++i)
+                {
+                    int counter = i;
+                    events.Add(new LogEventInfo(LogLevel.Info, "logger", counter.ToString()).WithContinuation(ex => result.Add(ex == null ? counter : -1)));
+                }
+
+                // Act
+                fileTarget.WriteAsyncLogEvents(events);
+
+                // Assert
+                Assert.Equal(Enumerable.Range(1, times).ToList(), result);
+                AssertFileContents(logfile, string.Join("\n", result.ToArray()) + "\n", Encoding.UTF8);
+            }
+            finally
+            {
+                if (File.Exists(logfile))
+                    File.Delete(logfile);
+                if (Directory.Exists(tempPath))
+                    Directory.Delete(tempPath, true);
             }
         }
 
@@ -4132,7 +4166,7 @@ namespace NLog.UnitTests.Targets
         public void ShouldArchiveOldFileOnStartupTest(bool? archiveOldFileOnStartup, long archiveOldFileOnStartupAboveSize, bool expected)
         {
             // Arrange
-            var fileAppenderCacheMock = Substitute.For<IFileAppenderCache>();
+            var fileAppenderCacheMock = Substitute.For<NLog.Internal.FileAppenders.IFileAppenderCache>();
 
             var filePath = "x:/somewhere/file.txt";
             fileAppenderCacheMock.GetFileLength(filePath).Returns(101);
