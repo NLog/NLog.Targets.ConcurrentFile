@@ -863,7 +863,7 @@ namespace NLog.Targets
             catch (Exception exception)
             {
                 InternalLogger.Warn(exception, "FileTarget(Name={0}): Exception in FlushAsync", Name);
-                if (exception.MustBeRethrown())
+                if (ExceptionMustBeRethrown(exception))
                 {
                     throw;
                 }
@@ -1303,7 +1303,7 @@ namespace NLog.Targets
             }
             catch (Exception exception)
             {
-                if (exception.MustBeRethrown())
+                if (ExceptionMustBeRethrown(exception))
                 {
                     throw;
                 }
@@ -1438,7 +1438,7 @@ namespace NLog.Targets
             catch (Exception exception)
             {
                 InternalLogger.Warn(exception, "FileTarget(Name={0}): Failed to delete old archive file: '{1}'.", Name, fileName);
-                if (exception.MustBeRethrown())
+                if (ExceptionMustBeRethrown(exception))
                 {
                     throw;
                 }
@@ -1470,7 +1470,7 @@ namespace NLog.Targets
             catch (Exception exception)
             {
                 InternalLogger.Warn(exception, "FileTarget(Name={0}): Failed to delete old archive file: '{1}'.", Name, fileName);
-                if (exception.MustBeRethrown())
+                if (ExceptionMustBeRethrown(exception))
                 {
                     throw;
                 }
@@ -1776,7 +1776,7 @@ namespace NLog.Targets
             catch (Exception exception)
             {
                 InternalLogger.Warn(exception, "FileTarget(Name={0}): Failed to check archive for file '{1}'.", Name, fileName);
-                if (exception.MustBeRethrown())
+                if (ExceptionMustBeRethrown(exception))
                 {
                     throw;
                 }
@@ -1873,7 +1873,7 @@ namespace NLog.Targets
             catch (Exception exception)
             {
                 InternalLogger.Warn(exception, "FileTarget(Name={0}): Failed to archive file '{1}'.", Name, archiveFile);
-                if (exception.MustBeRethrown())
+                if (ExceptionMustBeRethrown(exception))
                 {
                     throw;
                 }
@@ -2339,7 +2339,7 @@ namespace NLog.Targets
             {
                 InternalLogger.Warn(exception, "FileTarget(Name={0}): Unable to archive old log file '{1}'.", Name, fileName);
 
-                if (exception.MustBeRethrown())
+                if (ExceptionMustBeRethrown(exception))
                 {
                     throw;
                 }
