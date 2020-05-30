@@ -1,5 +1,5 @@
 // 
-// Copyright (c) 2004-2019 Jaroslaw Kowalski <jaak@jkowalski.net>, Kim Christensen, Julian Verdurmen
+// Copyright (c) 2004-2020 Jaroslaw Kowalski <jaak@jkowalski.net>, Kim Christensen, Julian Verdurmen
 // 
 // All rights reserved.
 // 
@@ -40,22 +40,24 @@ namespace NLog.Internal
     {
         public static DateTime GetLastWriteTimeUtc(this FileInfo fileInfo)
         {
-#if !SILVERLIGHT
             return fileInfo.LastWriteTimeUtc;
-#else
-            return fileInfo.LastWriteTime;
-#endif
         }
         public static DateTime GetCreationTimeUtc(this FileInfo fileInfo)
         {
-#if !SILVERLIGHT
             return fileInfo.CreationTimeUtc;
-#else
-            return fileInfo.CreationTime;
-#endif
         }
 
-       
+        public static DateTime? LookupValidFileCreationTimeUtc(this FileInfo fileInfo)
+        {
+            return FileInfoHelper.LookupValidFileCreationTimeUtc(fileInfo, (f) => f.GetCreationTimeUtc(), (f) => f.GetLastWriteTimeUtc());
+        }
 
+        public static DateTime? LookupValidFileCreationTimeUtc(this FileInfo fileInfo, DateTime? fallbackTime)
+        {
+            if (fallbackTime > DateTime.MinValue)
+                return FileInfoHelper.LookupValidFileCreationTimeUtc(fileInfo, (f) => f.GetCreationTimeUtc(), (f) => fallbackTime.Value, (f) => f.GetLastWriteTimeUtc());
+            else
+                return LookupValidFileCreationTimeUtc(fileInfo);
+        }
     }
 }
