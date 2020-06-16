@@ -448,12 +448,19 @@ namespace NLog.Targets
         [DefaultValue(false)]
         public bool NetworkWrites { get; set; }
 
+        private bool? _writeBom;
+
         /// <summary>
-        /// Gets or sets a value indicating whether to write BOM (byte order mark) in created files
+        /// Gets or sets a value indicating whether to write BOM (byte order mark) in created files.
+        ///
+        /// Defaults to true for UTF-16 and UTF-32
         /// </summary>
         /// <docgen category='Output Options' order='10' />
-        [DefaultValue(false)]
-        public bool WriteBom { get; set; }
+        public bool WriteBom
+        {
+            get => _writeBom ?? InitialValueBom(Encoding);
+            set => _writeBom = value;
+        }
 
         /// <summary>
         /// Gets or sets the number of times the write is appended on the file before NLog
@@ -2409,6 +2416,20 @@ namespace NLog.Targets
                 //retry.
                 ReplaceFileContent(fileName, bytes, false);
             }
+        }
+
+        private static bool InitialValueBom(Encoding encoding)
+        {
+            // Initial of true for UTF 16 and UTF 32
+            const int utf16 = 1200;
+            const int utf16Be = 1201;
+            const int utf32 = 12000;
+            const int urf32Be = 12001;
+
+            return encoding.CodePage == utf16
+                   || encoding.CodePage == utf16Be
+                   || encoding.CodePage == utf32
+                   || encoding.CodePage == urf32Be;
         }
 
         /// <summary>
