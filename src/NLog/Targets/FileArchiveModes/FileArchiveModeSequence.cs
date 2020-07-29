@@ -75,8 +75,8 @@ namespace NLog.Targets.FileArchiveModes
             {
                 return null;
             }
-            
-            var creationTimeUtc = archiveFile.LookupValidFileCreationTimeUtc().Value;
+
+            var creationTimeUtc = archiveFile.LookupValidFileCreationTimeUtc();
             var creationTime = creationTimeUtc > DateTime.MinValue ? NLog.Time.TimeSource.Current.FromSystemTime(creationTimeUtc) : DateTime.MinValue;
             return new DateAndSequenceArchive(archiveFile.FullName, creationTime, string.Empty, num);
         }
