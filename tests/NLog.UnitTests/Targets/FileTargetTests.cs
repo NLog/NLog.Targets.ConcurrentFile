@@ -1435,7 +1435,8 @@ namespace NLog.UnitTests.Targets
                     KeepFileOpen = keepFileOpen,
                     NetworkWrites = networkWrites,
                     ForceManaged = forceManaged,
-                    ForceMutexConcurrentWrites = forceMutexConcurrentWrites
+                    ForceMutexConcurrentWrites = forceMutexConcurrentWrites,
+                    Header = "header",
                 });
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
@@ -1488,6 +1489,9 @@ namespace NLog.UnitTests.Targets
                 var files = Directory.GetFiles(archiveFolder);
                 //the amount of archived files may not exceed the set 'MaxArchiveFiles'
                 Assert.Equal(maxArchiveFiles, files.Length);
+
+                foreach (var file in files)
+                    AssertFileContentsStartsWith(file, "header", Encoding.UTF8);
 
                 SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
                 //writing one line on a new day will trigger the cleanup of old archived files
@@ -3265,7 +3269,6 @@ namespace NLog.UnitTests.Targets
                 NLog.Common.InternalLogger.Reset();
             }
         }
-
 
         [Fact]
         public void Dont_throw_Exception_when_archiving_is_enabled_with_async()
