@@ -1090,6 +1090,7 @@ namespace NLog.UnitTests.Targets
                     Path.Combine(archiveFolder, "0003.txt"),
                     StringRepeat(times, "ddd\n"),
                     Encoding.UTF8);
+
                 //0000 should not exists because of MaxArchiveFiles=3
                 Assert.True(!File.Exists(Path.Combine(archiveFolder, "0000.txt")));
                 Assert.True(!File.Exists(Path.Combine(archiveFolder, "0004.txt")));
@@ -3019,6 +3020,7 @@ namespace NLog.UnitTests.Targets
 
                 Generate100BytesLog((char)('0'), logger1);
                 Generate100BytesLog((char)('0'), logger2);
+
                 for (int i = 0; i <= maxArchiveFiles - 3; i++)
                 {
                     Generate100BytesLog((char)('1' + i), logger1);
@@ -3074,6 +3076,13 @@ namespace NLog.UnitTests.Targets
                     Assert.True(File.Exists(logFile2),
                         $"{logFile2} is missing");
                 }
+
+                // Verify that archieve-cleanup after startup handles same folder archive correctly
+                fileTarget.ArchiveAboveSize = 200;
+                SimpleConfigurator.ConfigureForTargetLogging(fileTarget, LogLevel.Debug);
+                logger1.Info("Bye");
+                logger2.Info("Bye");
+                Assert.Equal(12, Directory.GetFiles(tempPath).Length);
 
                 LogManager.Configuration = null;
             }
