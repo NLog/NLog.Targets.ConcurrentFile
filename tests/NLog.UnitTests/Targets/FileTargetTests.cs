@@ -406,6 +406,8 @@ namespace NLog.UnitTests.Targets
                 {
                     Assert.Equal(14, Path.GetFileName(file).Length);
                 }
+
+                fileTarget.Close();
             }
             finally
             {
@@ -597,6 +599,8 @@ namespace NLog.UnitTests.Targets
                 AssertFileContents(logFile, "name;level;message\nNLog.UnitTests.Targets.FileTargetTests;Debug;aaa\nNLog.UnitTests.Targets.FileTargetTests;Debug;aaa\n", Encoding.UTF8);
 
                 Assert.NotEqual(3, Directory.GetFiles(tempPath).Count());   // See that archive cleanup worked
+
+                LogManager.Configuration = null;    // Close
             }
             finally
             {
@@ -3519,6 +3523,8 @@ namespace NLog.UnitTests.Targets
 
                 var currentFilesCount = archiveDir.GetFiles().Length;
                 Assert.Equal(expectedArchiveFiles, currentFilesCount);
+
+                LogManager.Configuration = null;    // Flush
             }
             finally
             {
@@ -4077,6 +4083,7 @@ namespace NLog.UnitTests.Targets
 
                 // Act
                 fileTarget.WriteAsyncLogEvents(events);
+                fileTarget.Close();
 
                 // Assert
                 Assert.Equal(Enumerable.Range(1, times).ToList(), result);
