@@ -41,7 +41,7 @@ using NLog.Targets;
 namespace NLog.Internal
 {
     /// <summary>
-    /// A layout that represents a filePath. 
+    /// A layout that represents a filePath.
     /// </summary>
     internal sealed class FilePathLayout : IRenderable
     {
@@ -97,7 +97,7 @@ namespace NLog.Internal
                 _baseDir = LogFactory.DefaultAppEnvironment.AppDomainBaseDirectory;
                 InternalLogger.Debug("FileTarget FilePathLayout with FilePathKind.Relative using AppDomain.BaseDirectory: {0}", _baseDir);
             }
-           
+
             if (_cleanedFixedResult != null)
             {
                 if (!StringHelpers.IsNullOrWhiteSpace(_cleanedFixedResult))
