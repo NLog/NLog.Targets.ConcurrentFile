@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Targets.ConcurrentFile", "src\NLog.Targets.ConcurrentFile\NLog.Targets.ConcurrentFile.csproj", "{D5861FC2-D930-3533-8712-F8A509233253}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Targets.ConcurrentFile.Tests", "tests\NLog.Targets.ConcurrentFile.Tests\NLog.Targets.ConcurrentFile.Tests.csproj", "{6A62229A-6FEB-1872-6891-D34405579426}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D5861FC2-D930-3533-8712-F8A509233253}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5861FC2-D930-3533-8712-F8A509233253}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5861FC2-D930-3533-8712-F8A509233253}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5861FC2-D930-3533-8712-F8A509233253}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A62229A-6FEB-1872-6891-D34405579426}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A62229A-6FEB-1872-6891-D34405579426}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A62229A-6FEB-1872-6891-D34405579426}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A62229A-6FEB-1872-6891-D34405579426}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {492C67AD-32A8-4746-98E8-CBFA11C61B16}
+	EndGlobalSection
+EndGlobal
