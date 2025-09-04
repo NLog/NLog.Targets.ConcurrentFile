@@ -1,5 +1,8 @@
 # NLog Concurrent File Target
 
+[![Version](https://badge.fury.io/nu/NLog.Targets.ConcurrentFile.svg)](https://www.nuget.org/packages/NLog.Targets.ConcurrentFile)
+[![AppVeyor](https://img.shields.io/appveyor/ci/nlog/NLog-Targets-ConcurrentFile/master.svg)](https://ci.appveyor.com/project/nlog/NLog-Targets-ConcurrentFile/branch/master)
+
 NLog File Target with support for ConcurrentWrites-option where multiple processes can write to the same file.
 
 This is the legacy FileTarget from NLog v5, if unable to use the new optimized FileTarget included with NLog v6.
