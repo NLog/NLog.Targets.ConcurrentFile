@@ -1086,7 +1086,7 @@ namespace NLog.Targets.ConcurrentFile.Tests
         public void ReplaceFileContentsOnEachWrite_CreateDirs(bool createDirs)
         {
             var tempDir = Path.Combine(Path.GetTempPath(), "nlog_" + Guid.NewGuid().ToString());
-            var logfile = Path.Combine(tempDir, "log.log");
+            var logfile = Path.Combine(tempDir, "${guid}/log.log");
 
             try
             {
@@ -1108,15 +1108,16 @@ namespace NLog.Targets.ConcurrentFile.Tests
 
                 var logger = LogManager.GetLogger("A");
                 logger.Info("a");
+                logger.Info("b");
 
                 Assert.Equal(createDirs, Directory.Exists(tempDir));
+                if (createDirs)
+                    Assert.Equal(2, Directory.GetDirectories(tempDir).Length);
             }
             finally
             {
                 LogManager.ThrowExceptions = true;
 
-                if (File.Exists(logfile))
-                    File.Delete(logfile);
                 if (Directory.Exists(tempDir))
                     Directory.Delete(tempDir, true);
             }
