@@ -1,7 +1,8 @@
 # NLog Concurrent File Target
 
 [![Version](https://badge.fury.io/nu/NLog.Targets.ConcurrentFile.svg)](https://www.nuget.org/packages/NLog.Targets.ConcurrentFile)
-[![AppVeyor](https://img.shields.io/appveyor/ci/NLog/NLog-Targets-ConcurrentFile/master.svg)](https://ci.appveyor.com/project/NLog/NLog-Targets-ConcurrentFile/branch/master)
+[![Build](https://github.com/NLog/NLog.Targets.ConcurrentFile/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/NLog/NLog.Targets.ConcurrentFile/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/NLog/NLog.Targets.ConcurrentFile/graph/badge.svg?token=E2JHB8ABFV)](https://codecov.io/gh/NLog/NLog.Targets.ConcurrentFile)
 
 NLog File Target with support for ConcurrentWrites-option where multiple processes can write to the same file.
 

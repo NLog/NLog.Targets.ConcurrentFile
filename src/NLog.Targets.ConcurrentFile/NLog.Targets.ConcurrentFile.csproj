@@ -6,15 +6,12 @@
     <VersionPrefix>6.0.3</VersionPrefix>
     <AssemblyVersion>6.0.0.0</AssemblyVersion>
     <!-- Strong AssemblyVersion must be fixed on 6.0.0.0 -->
-    <AppVeyorBuildNumber>$(APPVEYOR_BUILD_NUMBER)</AppVeyorBuildNumber>
-    <AppVeyorBuildNumber Condition="'$(AppVeyorBuildNumber)' == ''">0</AppVeyorBuildNumber>
-    <FileVersion>$(VersionPrefix).$(AppVeyorBuildNumber)</FileVersion>
+    <FileVersion>$(VersionPrefix).0</FileVersion>
 
     <Title>NLog.Targets.ConcurrentFile</Title>
     <Company>NLog</Company>
     <Description>FileTarget with support for ConcurrentWrites with Global Mutex and EnableArchiveFileCompression with ZIP</Description>
-    <Product>NLog.Targets.ConcurrentFile v$(ProductVersion)</Product>
-    <InformationalVersion>$(ProductVersion)</InformationalVersion>
+    <Product>NLog.Targets.ConcurrentFile v$(VersionPrefix)</Product>
     <Authors>Jarek Kowalski,Kim Christensen,Julian Verdurmen</Authors>
     <CurrentYear>$([System.DateTime]::Now.ToString(yyyy))</CurrentYear>
     <Copyright>Copyright (c) 2004-$(CurrentYear) NLog Project - https://nlog-project.org/ </Copyright>
@@ -80,7 +77,6 @@ https://github.com/NLog/NLog/wiki/File-target
 
   <ItemGroup>
     <PackageReference Include="NLog" Version="6.0.3" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>
